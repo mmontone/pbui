@@ -4,15 +4,6 @@
 
 (defvar contacts-app:contacts nil)
 
-(defun contacts-app:fetch-users ()
-  (request "https://randomuser.me/api/?results=50"
-    :success 'contacts-app:read-user))
-
-(cl-defun contacts-app:read-user (&key data &allow-other-keys)
-  (setf contacts-app:contacts (alist-get 'results (json-read-from-string data))))
-
-(contacts-app:fetch-users)
-
 (defmacro with-text-properties (properties &rest body)
   `(let ((tp-start (point)))
      ,@body
@@ -22,6 +13,15 @@
   (format "%s %s" (alist-get 'first (alist-get 'name user))
 	  (alist-get 'last (alist-get 'name user))))
 
+(defun contacts-app:user-id (user)
+  (alist-get 'value (alist-get 'id user)))
+
+(defun contacts-app:user-email (user)
+  (alist-get 'email user))
+
+(defun contacts-app:phone (user)
+  (alist-get 'phone user))
+
 (defun contacts-app:create-user-birthday-event (user)
   (list 'title (format "%s birthday" (contacts-app:user-fullname user))
 	'date (let ((date (parse-time-string (alist-get 'date (alist-get 'dob user)))))
@@ -30,8 +30,16 @@
 	'description (format "It is %s birthday." (contacts-app:user-fullname user))))
 
 (defun contacts-app ()
+  "Contacts application entry point command."
   (interactive)
-  
+  (request "https://randomuser.me/api/?results=50"
+    :success 
+    (cl-function
+     (lambda (&key data &allow-other-keys)
+       (setf contacts-app:contacts (alist-get 'results (json-read-from-string data)))
+       (contacts-app-create-buffer)))))
+
+(defun contacts-app-create-buffer ()
   (let ((buffer (get-buffer-create "*contacts-app*")))
     (with-current-buffer buffer
       (cl-loop for user across contacts-app:contacts
@@ -93,15 +101,6 @@
       (outline-hide-sublevels 1)
       (setq buffer-read-only t))
     (pop-to-buffer buffer)))
-
-(defun contacts-app:user-id (user)
-  (alist-get 'value (alist-get 'id user)))
-
-(defun contacts-app:user-email (user)
-  (alist-get 'email user))
-
-(defun contacts-app:phone (user)
-  (alist-get 'phone user))
 
 (def-presentation-command (contacts-app:delete-contacts
 			   :title "Delete contacts"
