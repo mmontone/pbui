@@ -18,7 +18,7 @@
       ("C-c x X" . select-presentation-at-point-and-run-command)
       ("C-c x <deletechar>" . reset-presentation-command-arguments)
       ("C-c x x" . run-presentations-command)
-      ("C-<return>" . global-pbui-mode)))
+      ("C-<return>" . enable-global-pbui-mode)))
    
    #+END_SRC
    

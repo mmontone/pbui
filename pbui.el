@@ -31,19 +31,31 @@
 
 (defclass pbui:command ()
   ((name :initarg :name
-         :accessor pbui:command-name)
+         :accessor pbui:command-name
+	 :type symbol
+	 :documentation "The unique name of the command.")
    (title :initarg :title
-          :accessor pbui:command-title)
+          :accessor pbui:command-title
+	  :type string
+	  :documentation "Title of the command. Appears in completion mini-buffer.")
    (description :initarg :description
-                :accessor pbui:command-description)
+		:type string
+                :accessor pbui:command-description
+		:documentation "Description of the command.")
    (matching-predicate :initarg :applyable-when
                        :accessor matching-predicate
-                       :initform nil)
+                       :initform nil
+		       :type (or null function symbol)
+		       :documentation "When present, this function is used for matching the set of selected presentations.")
    (argument-types :initarg :argument-types
                    :accessor pbui:command-argument-types
-                   :initform nil)
+                   :initform nil
+		   :documentation "The type of arguments accepted by this command.")
    (handler :initarg :handler
-            :accessor pbui:command-handler)))
+            :accessor pbui:command-handler
+	    :type (or function symbol)
+	    :documentation "A function for running the command. Takes instances of ARGUMENT-TYPES as arguments."))
+  (:documentation "A command that runs with selected presentations as arguments."))
 
 (defvar pbui:selected-presentations nil
   "The list of currently selected presentations.")
@@ -647,9 +659,9 @@ mouse-2: toggle selection of this presentation"
 
 (define-globalized-minor-mode global-pbui-mode
   pbui-mode
-  global-pbui-mode)
+  enable-global-pbui-mode)
 
-(defun global-pbui-mode ()
+(defun enable-global-pbui-mode ()
   (interactive)
   (pbui-mode)
   (cursor-sensor-mode)
