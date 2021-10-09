@@ -590,7 +590,7 @@ mouse-2: toggle selection of this presentation"
     ["Previous presentation" goto-previous-presentation
      :help "Search previous presentation in buffer"]
     "---"
-    ["Toggle presentation at point" toggle-presentation-at-point
+    ["Toggle presentation selected at point" toggle-presentation-selected-at-point
      :help "Select or unselect presentation at point"]
     ["Run command with presentation at point..." select-presentation-at-point-and-run-command
      :help "Select the presentation at point and run a command"]
@@ -599,10 +599,14 @@ mouse-2: toggle selection of this presentation"
     ["Reset selected presentations" reset-selected-presentations
      :help "Clear the list of selected presentations"]
     "---"
-    ["Customize" customize-presentations
+    ["Customize" pbui:customize
      :help "Customize presentations mode"]
     ["Quit" disable-global-pbui-mode
      :help "Quit Presentations mode"]))
+
+(defun pbui:customize ()
+  (interactive)
+  (customize-group 'pbui))
 
 (defun pbui:draw-selected-presentations ()
   (setq buffer-read-only nil)
