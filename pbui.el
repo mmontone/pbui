@@ -564,12 +564,20 @@ mouse-2: toggle selection of this presentation"
   ;; The minor mode bindings.
   :keymap pbui-mode-map
   :group 'pbui
-  :after-hook (pbui:initialize-pbui-mode))
+  (if pbui-mode
+      (pbui:initialize-pbui-mode)
+    (pbui:release-pbui-mode)))
 
 (defun pbui:initialize-pbui-mode ()
   "Initialize PBUI mode."
   (propertize-presentations-in-buffer)
-  (highlight-selected-presentations))
+  (highlight-selected-presentations)
+  (cursor-sensor-mode))
+
+(defun pbui:release-pbui-mode ()
+  (unhighlight-selected-presentations)
+  (pbui:clear-highlights-in-buffer)
+  (cursor-sensor-mode -1))
 
 (easy-menu-define
   pbui-mode-menu pbui-mode-map
@@ -662,21 +670,12 @@ mouse-2: toggle selection of this presentation"
 
 (define-globalized-minor-mode global-pbui-mode
   pbui-mode
-  enable-global-pbui-mode)
-
-(defun enable-global-pbui-mode ()
-  (interactive)
-  (pbui-mode)
-  (cursor-sensor-mode)
-  (pbui:highlight-all-buffers)
-  (message "Presentations mode entered"))
+  (lambda ()
+    (pbui-mode t)))
 
 (defun disable-global-pbui-mode ()
   (interactive)
-  (pbui-mode -1)
-  (cursor-sensor-mode -1)
-  (pbui:clear-all-buffers)
-  (message "Presentations mode disabled"))
+  (global-pbui-mode -1))
 
 (provide 'pbui)
 
