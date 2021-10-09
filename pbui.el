@@ -563,7 +563,13 @@ mouse-2: toggle selection of this presentation"
   :lighter " PBUI"
   ;; The minor mode bindings.
   :keymap pbui-mode-map
-  :group 'pbui)
+  :group 'pbui
+  :after-hook (pbui:initialize-pbui-mode))
+
+(defun pbui:initialize-pbui-mode ()
+  "Initialize PBUI mode."
+  (propertize-presentations-in-buffer)
+  (highlight-selected-presentations))
 
 (easy-menu-define
   pbui-mode-menu pbui-mode-map
@@ -589,9 +595,6 @@ mouse-2: toggle selection of this presentation"
      :help "Customize presentations mode"]
     ["Quit" disable-global-pbui-mode
      :help "Quit Presentations mode"]))
-
-(add-hook 'pbui-mode-hook 'propertize-presentations-in-buffer)
-(add-hook 'pbui-mode-hook 'highlight-selected-presentations)
 
 (defun pbui:draw-selected-presentations ()
   (setq buffer-read-only nil)
