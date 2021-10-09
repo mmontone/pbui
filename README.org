@@ -1,0 +1,13 @@
+* PBUI
+
+** Introduction
+
+   PBUI is a Presentation Based User Interface for Emacs.
+
+   This is work in progress.
+   
+** References
+   - Presentation Based User Interfaces - Ciccarelli, Eugene C.
+   - User Interface Management Systems: The CLIM Perspective - Ralf Möller.
+   - An Implementation of CLIM Presentation Types - Timothy Moore.
+   - Holland, Simon & Oppenheim, Daniel. (1999). Direct Combination.. 262-269.
