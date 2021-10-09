@@ -541,7 +541,6 @@ mouse-2: toggle selection of this presentation"
 (defvar pbui-mode-map
   (let ((map (make-keymap)))
     (define-key map (kbd "SPC") 'toggle-presentation-selected-at-point)
-    (define-key map (kbd "RET") 'toggle-presentation-selected-at-point)
     (define-key map (kbd "X") 'select-presentation-at-point-and-run-command)
     (define-key map (kbd "<deletechar>") 'reset-selected-presentations)
     (define-key map (kbd "x") 'run-presentations-command)
