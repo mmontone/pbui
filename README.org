@@ -5,6 +5,22 @@
    PBUI is a Presentation Based User Interface for Emacs.
 
    This is work in progress.
+
+** Installation
+
+   #+BEGIN_SRC emacs-lisp
+
+   (push "/home/marian/src/pbui/" load-path)
+
+   (use-package pbui
+     :bind
+     (("C-c x SPC" . toggle-presentation-selected-at-point)
+      ("C-c x X" . select-presentation-at-point-and-run-command)
+      ("C-c x <deletechar>" . reset-presentation-command-arguments)
+      ("C-c x x" . run-presentations-command)
+      ("C-<return>" . global-pbui-mode)))
+   
+   #+END_SRC
    
 ** References
    - Presentation Based User Interfaces - Ciccarelli, Eugene C.
