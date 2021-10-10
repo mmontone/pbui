@@ -160,12 +160,12 @@
 						       (eql (getf arg 'type) 'file)))
 						    args)))
   ((users contacts-app:user) (emails email) (files file))
-  (let* ((all-emails (append (mapcar 'contacts-app:user-email users)
-			     emails))
-	 (args (format " -compose \"to='%s',attachment='%s'\""
-			  (s-join "," (mapcar 'contacts-app:user-email users))
-			  (s-join "," files))))
+  (let ((all-emails (append (mapcar 'contacts-app:user-email users)
+			    emails)))
     (call-process "/usr/bin/thunderbird" nil nil nil
-		  args)))
+		  "-compose"
+		  (format "to='%s',attachment='%s'"
+			  (s-join "," (mapcar 'contacts-app:user-email users))
+			  (s-join "," files)))))
 
 (provide 'pbui-contacts-app)
