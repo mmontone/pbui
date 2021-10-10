@@ -135,3 +135,4 @@
    - User Interface Management Systems: The CLIM Perspective - Ralf Möller.
    - An Implementation of CLIM Presentation Types - Timothy Moore.
    - Holland, Simon & Oppenheim, Daniel. (1999). Direct Combination.. 262-269.
+   - [[https://common-lisp.net/project/mcclim][McCLIM]] is a user interface framework for Common Lisp that is presentation based.
