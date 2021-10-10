@@ -21,7 +21,31 @@
       ("C-<return>" . global-pbui-mode)))
    
    #+END_SRC
-   
+
+** Usage
+
+*** PBUI mode
+
+    The global *PBUI* mode is enabled via *global-pbui-mode* Emacs command (bound to *C-<return>* if you used the configuration above).
+
+    *PBUI* implements a modal interface with combination-free keybindings for operating on presentations available in buffers.
+    
+    The *PBUI* mode highlights presentations available in buffers when mouse is hovered over them or the keyboard cursor is moved to their position.
+
+    To select or unselect a presentation *toggle-presentation-selected-at-point* Emacs command is used (bound to *SPC* when *PBUI* is active).
+    
+*** Dired extension
+
+    PBUI includes a Dired extension that makes Dired presentation based.
+
+    To install:
+    
+    #+BEGIN_SRC emacs-lisp
+      (require 'pbui-dired)
+    #+END_SRC
+
+    After that, after entering PBUI mode, Dired files are highlighted as presentations.
+    
 ** References
    - Presentation Based User Interfaces - Ciccarelli, Eugene C.
    - User Interface Management Systems: The CLIM Perspective - Ralf Möller.
