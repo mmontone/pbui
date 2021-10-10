@@ -78,6 +78,46 @@
 
     As an example, try selecting files in Dired (after enabling *PBUI* mode). Then select some users from the contacts demo application.
     Finally hit *x* and choose *Send files by email* command (this needs Thunderbird on Linux at the moment).
+
+** Developing Presentation Based applications with PBUI
+
+*** Inserting presentations in buffers
+   
+   A presentation associates graphical output with application objects.
+   In *PBUI* that is done via Emacs text properties; a text property named *presentation* is attached to the inserted buffer text.
+   The property value is a property list with *type* and *value* keys. *value* can contain any application object; that's the object associated to the presentation.
+   *type* has the type of the presented object.
+
+   Some examples of this:
+
+   - presentation for an email object:
+
+     #+begin_src emacs-lisp
+       (insert (propertize "john@mail.com" 'presentation '(type email value "john@mail.com")))
+     #+end_src
+
+   - presentation for a file object:
+
+     #+begin_src emacs-lisp
+       (insert (propertize "/usr/bin/foo" 'presentation '(type file value "/usr/bin/foo")))
+     #+end_src
+
+*** Defining commands
+
+    Presented object are processed using commands that work on those presented objects (presentation commands).
+    Presentation commands are defined using *def-presentation-command* macro.
+    Only those command that match the types of the selected presented objects are made available to the user for execution.
+
+    For example, this is the implemention of a presentation command for copying a selected file to a selected directory:
+    
+    #+begin_src emacs-lisp
+    (def-presentation-command (standard-commands:copy-file-to-directory
+                           :title "Copy file to directory"
+                           :description "Copy file to directory")
+      ((file file) (dir directory))
+      (copy-file file dir)
+      (message "File copied to directory"))
+    #+end_src    
     
 ** References
    - Presentation Based User Interfaces - Ciccarelli, Eugene C.
