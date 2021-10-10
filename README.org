@@ -81,6 +81,10 @@
 
 ** Developing Presentation Based applications with PBUI
 
+   Developing Presentation Based applications is as easy as adding some specific text properties to inserted text in our application buffer. That's it. There are no more requirements.
+
+   To make some application Presentation Based aware, there's no need of requiring *PBUI* library, nor define any commands; only requirement is to attach application objects to the inserted text like explained below: 
+
 *** Inserting presentations in buffers
    
    A presentation associates graphical output with application objects.
