@@ -24,6 +24,10 @@
 
 ** Usage
 
+   The way *PBUI* works is by letting the user select the presentations he wants to work on first, then run a command that works over those presentations.
+
+   An example of that could be to first select a bunch of files and a directory, then run some command that works with those arguments, like *Move files to directory* or *Copy files to directory*.
+
 *** PBUI mode
 
     The global *PBUI* mode is enabled via *global-pbui-mode* Emacs command (bound to *C-<return>* if you used the configuration above).
@@ -67,6 +71,13 @@
     After that, after entering *PBUI* mode, *Dired* files are highlighted as presentations.
 
     [[file:docs/dired.png]]
+
+*** Combining presentations from different applications
+
+    A very powerful aspect of Presentation Based User Interfaces is that presentations can be combined between applications.
+
+    As an example, try selecting files in Dired (after enabling *PBUI* mode). Then select some users from the contacts demo application.
+    Finally hit *x* and choose *Send files by email* command (this needs Thunderbird on Linux at the moment).
     
 ** References
    - Presentation Based User Interfaces - Ciccarelli, Eugene C.

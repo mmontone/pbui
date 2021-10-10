@@ -110,7 +110,7 @@
 						      (eql (getf arg 'type)
 							   'contacts-app:user))
 						    args)))
-  (users)
+  (&rest users)
   (let ((users-ids (remove-if 'null (mapcar 'contacts-app:user-id users))))
     (setf contacts-app:contacts
 	  (cl-delete-if (lambda (user)
@@ -148,5 +148,24 @@
 				(nth 3 (getf event 'date)))
 			(getf event 'description)
 			"")))
+
+(def-presentation-command (contacts-app:send-files-in-email
+			   :title "Send files in email"
+			   :description "Send files in email"
+			   :applyable-when (lambda (args)
+					     (every (lambda (arg)
+						      (or
+						       (eql (getf arg 'type) 'contacts-app:user)
+						       (eql (getf arg 'type) 'email)
+						       (eql (getf arg 'type) 'file)))
+						    args)))
+  ((users contacts-app:user) (emails email) (files file))
+  (let* ((all-emails (append (mapcar 'contacts-app:user-email users)
+			     emails))
+	 (args (format " -compose \"to='%s',attachment='%s'\""
+			  (s-join "," (mapcar 'contacts-app:user-email users))
+			  (s-join "," files))))
+    (call-process "/usr/bin/thunderbird" nil nil nil
+		  args)))
 
 (provide 'pbui-contacts-app)

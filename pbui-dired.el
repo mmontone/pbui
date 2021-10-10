@@ -1,5 +1,6 @@
 (require 'dired)
 (require 'pbui)
+(require 'pbui-standard-commands)
 
 ;; dired patch for presentations
 

@@ -32,29 +32,32 @@
 (defclass pbui:command ()
   ((name :initarg :name
          :accessor pbui:command-name
-	 :type symbol
-	 :documentation "The unique name of the command.")
+         :type symbol
+         :documentation "The unique name of the command.")
    (title :initarg :title
           :accessor pbui:command-title
-	  :type string
-	  :documentation "Title of the command. Appears in completion mini-buffer.")
+          :type string
+          :documentation "Title of the command. Appears in completion mini-buffer.")
    (description :initarg :description
-		:type string
+                :type string
                 :accessor pbui:command-description
-		:documentation "Description of the command.")
+                :documentation "Description of the command.")
    (matching-predicate :initarg :applyable-when
                        :accessor matching-predicate
                        :initform nil
-		       :type (or null function symbol)
-		       :documentation "When present, this function is used for matching the set of selected presentations.")
+                       :type (or null function symbol)
+                       :documentation "When present, this function is used for matching the set of selected presentations.")
    (argument-types :initarg :argument-types
                    :accessor pbui:command-argument-types
                    :initform nil
-		   :documentation "The type of arguments accepted by this command.")
+                   :documentation "The type of arguments accepted by this command.")
    (handler :initarg :handler
             :accessor pbui:command-handler
-	    :type (or function symbol)
-	    :documentation "A function for running the command. Takes instances of ARGUMENT-TYPES as arguments."))
+            :type (or function symbol)
+            :documentation "A function for running the command. Takes instances of ARGUMENT-TYPES as arguments.")
+   (handler-arglist :initarg :handler-arglist
+                    :accessor pbui:handler-arglist
+                    :documentation "Used internally by PBUI for destructuring and managing command handlers arguments."))
   (:documentation "A command that runs with selected presentations as arguments."))
 
 (defvar pbui:selected-presentations nil
@@ -118,9 +121,9 @@
 (defun pbui:add-selected-presentation (presentation buffer position)
   ;; We record the presentation and buffer and position for selected presentations
   (let ((selection (list
-		    'presentation presentation
-		    'buffer (or buffer (current-buffer))
-		    'position (or position (point)))))
+                    'presentation presentation
+                    'buffer (or buffer (current-buffer))
+                    'position (or position (point)))))
     (push selection
           pbui:selected-presentations)
     (pbui:refresh-selected-presentations)
@@ -163,22 +166,26 @@
 
 (defvar pbui:commands (make-hash-table :test 'equal))
 
+(defun pbui:find-command (command-name)
+  "Find PBUI command named with COMMAND-NAME."
+  (gethash command-name pbui:commands))
+
 (defmacro def-presentation-command (name-and-options args &rest body)
   (let ((command-name (if (listp name-and-options)
                           (first name-and-options)
                         name-and-options))
         (options (when (listp name-and-options)
                    (rest name-and-options))))
-
     `(setf (gethash ',command-name pbui:commands)
            (make-instance 'pbui:command
                           :name ',command-name
                           :argument-types ',(and (not (getf options :applyable-when))
                                                  (mapcar 'second args))
-                          :handler (lambda ,(if (getf options :applyable-when)
+                          :handler (lambda ,(if (eql (first args) '&rest)
                                                 args
                                               (mapcar 'first args))
                                      ,@body)
+                          :handler-arglist ',args
                           ,@options))))
 
 (defun pbui:command-matches (command presentations)
@@ -204,9 +211,30 @@
            collect command))
 
 (defun pbui:run-command (command)
-  (apply (pbui:command-handler command)
-         (mapcar (lambda (sel) (getf (getf sel 'presentation) 'value))
-                 (reverse pbui:selected-presentations))))
+  (let ((ps (mapcar (lambda (sel)
+                      (getf sel 'presentation))
+                    pbui:selected-presentations)))
+    (if (eql (first (pbui:handler-arglist command))
+             '&rest)
+        (apply (pbui:command-handler command)
+               (mapcar 'presentation-value
+                       (reverse ps)))
+      ;; else
+      ;; destructure handler arg list using presentation types
+      (let ((actual-args nil))
+        (dolist (argspec (pbui:handler-arglist command))
+          (destructuring-bind (argname argtype) argspec
+            (if (cl-member (substring (symbol-name argname) -1) '("s" "*")
+                           :test 'string=)
+                ;; a multi-valued argument
+                (push (cl-loop for p in ps
+                               when (eql (presentation-type p) argtype)
+                               collect (presentation-value p))
+                      actual-args)
+              ;; a single-valued argument
+              (push (cl-find argtype ps :key 'presentation-type)
+                    actual-args))))
+        (apply (pbui:command-handler command) (reverse actual-args))))))
 
 ;; See: http://www.howardism.org/Technical/Emacs/alt-completing-read.html
 (defun alt-completing-read (prompt collection &optional predicate require-match initial-input hist def inherit-input-method)
@@ -286,7 +314,7 @@ VALUE is is the object being presented."
   :group 'pbui)
 
 (defface presentations-button
-  '((((type x w32 ns) (class color))	; Like default mode line
+  '((((type x w32 ns) (class color))    ; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "lightgrey" :foreground "black"))
   "Face for custom buffer buttons if `custom-raised-buttons' is non-nil."
@@ -304,27 +332,27 @@ VALUE is is the object being presented."
   (let ((presentation (presentation-at-point)))
     (when presentation
       (unless (presentation-selected-p presentation)
-	(save-excursion
-	  (goto-char (1+ (point)))
-	  (let ((prop (text-property-search-backward 'presentation))
-		(prop-next (text-property-search-forward 'presentation)))
+        (save-excursion
+          (goto-char (1+ (point)))
+          (let ((prop (text-property-search-backward 'presentation))
+                (prop-next (text-property-search-forward 'presentation)))
             (with-write-buffer
              (put-text-property (prop-match-beginning prop)
-				(prop-match-end prop-next)
-				'font-lock-face 'presentation))))))))
+                                (prop-match-end prop-next)
+                                'font-lock-face 'presentation))))))))
 
 (defun unhighlight-presentation-at-point ()
   (let ((presentation (presentation-at-point)))
     (when presentation
       (unless (presentation-selected-p presentation)
-	(save-excursion
-	  (goto-char (1+ (point)))
-	  (let ((prop (text-property-search-backward 'presentation))
-		(prop-next (text-property-search-forward 'presentation)))
-	    (with-write-buffer
+        (save-excursion
+          (goto-char (1+ (point)))
+          (let ((prop (text-property-search-backward 'presentation))
+                (prop-next (text-property-search-forward 'presentation)))
+            (with-write-buffer
              (put-text-property (prop-match-beginning prop)
-				(prop-match-end prop-next)
-				'font-lock-face nil))))))))
+                                (prop-match-end prop-next)
+                                'font-lock-face nil))))))))
 
 (defun pbui:highlight-selected-presentation (selection)
   (let ((buffer (getf selection 'buffer)))
@@ -332,14 +360,14 @@ VALUE is is the object being presented."
       (with-current-buffer buffer
         (save-excursion
           (goto-char (1+ (getf selection 'position)))
-	  (let ((presentation (presentation-at-point)))
-	    (when presentation
-	      (let ((prop (text-property-search-backward 'presentation))
-		    (prop-next (text-property-search-forward 'presentation)))
-		  (with-write-buffer
-		   (put-text-property (prop-match-beginning prop)
-				      (prop-match-end prop-next)
-				      'font-lock-face 'selected-presentation))))))))))
+          (let ((presentation (presentation-at-point)))
+            (when presentation
+              (let ((prop (text-property-search-backward 'presentation))
+                    (prop-next (text-property-search-forward 'presentation)))
+                (with-write-buffer
+                 (put-text-property (prop-match-beginning prop)
+                                    (prop-match-end prop-next)
+                                    'font-lock-face 'selected-presentation))))))))))
 
 (defun pbui:unhighlight-selected-presentation (selection)
   (let ((buffer (getf selection 'buffer)))
@@ -347,12 +375,12 @@ VALUE is is the object being presented."
       (with-current-buffer buffer
         (save-excursion
           (goto-char (1+ (getf selection 'position)))
-	  (let ((prop (text-property-search-backward 'presentation))
-		    (prop-next (text-property-search-forward 'presentation)))
-		  (with-write-buffer
-		   (put-text-property (prop-match-beginning prop)
-				      (prop-match-end prop-next)
-				      'font-lock-face nil))))))))
+          (let ((prop (text-property-search-backward 'presentation))
+                (prop-next (text-property-search-forward 'presentation)))
+            (with-write-buffer
+             (put-text-property (prop-match-beginning prop)
+                                (prop-match-end prop-next)
+                                'font-lock-face nil))))))))
 
 (defun unhighlight-selected-presentations ()
   "Unhighlight the currently selected presentations."
@@ -367,12 +395,12 @@ VALUE is is the object being presented."
 (defun highlight-presentations-in-buffer ()
   "Highlight the presentations in current buffer."
   (save-excursion
-      (goto-char 0)
-      (while (setq prop (text-property-search-forward 'presentation))
-          (put-text-property
-           (prop-match-beginning prop)
-           (prop-match-end prop)
-           'font-lock-face 'presentation))))
+    (goto-char 0)
+    (while (setq prop (text-property-search-forward 'presentation))
+      (put-text-property
+       (prop-match-beginning prop)
+       (prop-match-end prop)
+       'font-lock-face 'presentation))))
 
 (defun propertize-presentations-in-buffer ()
   "Set text properties for presentations in current buffer."
@@ -398,18 +426,18 @@ mouse-2: toggle selection of this presentation"
          (prop-match-beginning prop)
          (prop-match-end prop)
          'cursor-sensor-functions
-	 (list 
-	  (lambda (window pos action)
-	    (save-excursion
-	      (if (eql action 'entered)
-		  (progn
-		    (highlight-presentation-at-point)
-		    (message
-		     (pbui:print-presentation (presentation-at-point))))
-		(progn
-		  (goto-char pos)
-		  (unhighlight-presentation-at-point))))
-	    )))))        
+         (list
+          (lambda (window pos action)
+            (save-excursion
+              (if (eql action 'entered)
+                  (progn
+                    (highlight-presentation-at-point)
+                    (message
+                     (pbui:print-presentation (presentation-at-point))))
+                (progn
+                  (goto-char pos)
+                  (unhighlight-presentation-at-point))))
+            )))))
     (setq buffer-read-only read-only-p)))
 
 (defun pbui:highlight-all-buffers ()
@@ -449,94 +477,24 @@ mouse-2: toggle selection of this presentation"
 (defun goto-next-presentation ()
   (interactive)
   (text-property-search-forward 'presentation nil
-				(lambda (value pvalue)
-				  (eql value pvalue)))
+                                (lambda (value pvalue)
+                                  (eql value pvalue)))
   (let ((prop
-	 (text-property-search-forward 'presentation)))
+         (text-property-search-forward 'presentation)))
     (when prop
       (goto-char (prop-match-beginning prop)))))
 
 (defun goto-previous-presentation ()
   (interactive)
   (text-property-search-backward 'presentation nil
-				(lambda (value pvalue)
-				  (eql value pvalue)))
+                                 (lambda (value pvalue)
+                                   (eql value pvalue)))
   (let ((prop
-	 (text-property-search-backward 'presentation)))
+         (text-property-search-backward 'presentation)))
     (when prop
       (goto-char (prop-match-beginning prop)))))
 
-;;--------- Commands --------------------
-
-(def-presentation-command (standard-commands:open-file
-                           :title "Open file"
-                           :description "Open the file in a new buffer")
-  ((file file))
-  (find-file file))
-
-(def-presentation-command (standard-commands:copy-file-to-directory
-                           :title "Copy file to directory"
-                           :description "Copy file to directory")
-  ((file file) (dir directory))
-  (copy-file file dir)
-  (message "File copied to directory"))
-
-(def-presentation-command (standard-commands:move-file-to-directory
-                           :title "Move file to directory"
-                           :description "Move file to directory")
-  ((file file) (dir directory))
-  (rename-file file dir)
-  (message "File moved to directory"))
-
-(def-presentation-command (standard-commands:move-file-to-trash
-                           :title "Move file to trash"
-                           :description "Move file to trash")
-  ((file file))
-  (move-file-to-trash file)
-  (message "File moved to trash"))
-
-(defun presentation-type (presentation)
-  (getf presentation 'type))
-
-(defun presentation-value (presentation)
-  (getf presentation 'value))
-
-(def-presentation-command (standard-commands:copy-files-to-directory
-                           :title "Copy files to directory"
-                           :description "Copy files to directory"
-                           :applyable-when (lambda (args)
-                                             (and (every (lambda (arg)
-                                                           (eql (getf arg 'type)
-                                                                'file))
-                                                         (butlast args))
-                                                  (eql (getf (car (last args)) 'type)
-                                                       'file))))
-  (args)
-  (let ((files (butlast args))
-        (dir (car (last args))))
-    (dolist (file files)
-      (copy-file file dir))
-    (message "Files copied to directory")))
-
-(def-presentation-command (send-email
-                           :title "Send email"
-                           :description "Send email"
-                           :applyable-when (lambda (args)
-                                             (every (lambda (arg)
-                                                      (eql (getf arg 'type) 'email))
-                                                    args)))
-  (&rest emails)
-  (call-process "/usr/bin/xdg-open" nil nil nil
-                (format "mailto:%s" (s-join "," emails))))
-
-(when (featurep 'inspector)
-  (defun inspect-presentation-at-point ()
-    (interactive)
-    (let ((presentation (presentation-at-point)))
-      (when presentation
-        (inspector-inspect presentation)))))
-
-;; --- pbui mode ----------------------------
+;;--- PBUI mode ----------------------------------------------------------------
 
 (defvar pbui-mode-map
   (let ((map (make-keymap)))
