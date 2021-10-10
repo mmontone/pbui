@@ -22,6 +22,13 @@
    
    #+END_SRC
 
+** Presentation Based User Interfaces
+
+   A Presentation Based User Interface provides a uniform way of interacting with domain objects across applications.
+
+   In a PBUI, whenever a domain object is displayed, it gets attached to its printed representation.
+   Then those domain objects can be selected by the user by clicking on their printed representation, and then run commands that work on the type of objects selected.
+   
 ** Usage
 
    The way *PBUI* works is by letting the user select the presentations he wants to work on first, then run a command that works over those presentations.
