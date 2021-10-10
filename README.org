@@ -41,6 +41,18 @@
     To exit the global *PBUI* mode use *ESC* key.
 
     [[file:docs/pbui.png]]
+
+*** Demo application
+
+    A presentation based demo application is included. It is a contacts management application that uses presentations for displaying contacts data.
+
+    #+BEGIN_SRC emacs-lisp
+      (require 'pbui-contacts-app)
+    #+END_SRC
+
+    Then run *contacts-app* Emacs command to start the application.
+
+    Once the application start, enter *PBUI* mode. Select presentations and run commands.
     
 *** Dired extension
 

@@ -149,4 +149,4 @@
 			(getf event 'description)
 			"")))
 
-(provide 'contacts-app)
+(provide 'pbui-contacts-app)
