@@ -32,11 +32,17 @@
     
     The *PBUI* mode highlights presentations available in buffers when mouse is hovered over them or the keyboard cursor is moved to their position.
 
-    To select or unselect a presentation *toggle-presentation-selected-at-point* Emacs command is used (bound to *SPC* when *PBUI* is active).
+    Presentations are selected/unselected using *toggle-presentation-selected-at-point* Emacs command (bound to *space* key when *PBUI* mode is active, or by using the mouse middle click).
+
+    After selecting presentations, use *x* key to run a command with the selected presentations as arguments.
+
+    To clear the list of selected presentations use *DEL* key.
+
+    To exit the global *PBUI* mode use *ESC* key.
     
 *** Dired extension
 
-    PBUI includes a Dired extension that makes Dired presentation based.
+    *PBUI* includes a *Dired* extension that makes Dired presentation based.
 
     To install:
     
@@ -44,7 +50,7 @@
       (require 'pbui-dired)
     #+END_SRC
 
-    After that, after entering PBUI mode, Dired files are highlighted as presentations.
+    After that, after entering *PBUI* mode, *Dired* files are highlighted as presentations.
     
 ** References
    - Presentation Based User Interfaces - Ciccarelli, Eugene C.
