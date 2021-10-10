@@ -39,6 +39,8 @@
     To clear the list of selected presentations use *DEL* key.
 
     To exit the global *PBUI* mode use *ESC* key.
+
+    [[file:docs/pbui.png]]
     
 *** Dired extension
 
@@ -51,6 +53,8 @@
     #+END_SRC
 
     After that, after entering *PBUI* mode, *Dired* files are highlighted as presentations.
+
+    [[file:docs/dired.png]]
     
 ** References
    - Presentation Based User Interfaces - Ciccarelli, Eugene C.
