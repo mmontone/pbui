@@ -111,17 +111,20 @@
 							   'contacts-app:user))
 						    args)))
   (&rest users)
-  (let ((users-ids (remove-if 'null (mapcar 'contacts-app:user-id users))))
-    (setf contacts-app:contacts
-	  (cl-delete-if (lambda (user)
-			  (cl-member (contacts-app:user-id user)
-				     users-ids))
-			contacts-app:contacts))
-    (let ((buffer (get-buffer "*contacts-app*")))
-      (with-current-buffer buffer
-	(erase-buffer)
-	(contacts-app)))
-    (message "Users deleted")))
+  (when (yes-or-no-p (format "Delete %d selected contacts?"
+			     (length users)))
+    (let ((users-ids (remove-if 'null (mapcar 'contacts-app:user-id users))))
+      (setf contacts-app:contacts
+	    (cl-delete-if (lambda (user)
+			    (cl-member (contacts-app:user-id user)
+				       users-ids))
+			  contacts-app:contacts))
+      (let ((buffer (get-buffer "*contacts-app*")))
+	(with-current-buffer buffer
+	  (with-write-buffer
+	   (erase-buffer)
+	   (contacts-app-create-buffer))))
+      (message "Selected contacts deleted"))))
 
 (def-presentation-command (contacts-app:send-email
 			   :title "Send email"
