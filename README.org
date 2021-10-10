@@ -46,7 +46,7 @@
 
     [[file:docs/pbui.png]]
 
-*** Demo application
+** Demo application
 
     A presentation based demo application is included. It is a contacts management application that uses presentations for displaying contacts data.
 
@@ -58,7 +58,7 @@
 
     Once the application start, enter *PBUI* mode. Select presentations and run commands.
     
-*** Dired extension
+** Dired extension
 
     *PBUI* includes a *Dired* extension that makes Dired presentation based.
 
@@ -72,7 +72,7 @@
 
     [[file:docs/dired.png]]
 
-*** Combining presentations from different applications
+** Combining presentations from different applications
 
     A very powerful aspect of Presentation Based User Interfaces is that presentations can be combined between applications.
 
