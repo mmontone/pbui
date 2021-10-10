@@ -1,3 +1,6 @@
+(require 'dired)
+(require 'pbui)
+
 ;; dired patch for presentations
 
 (defun dired-insert-set-properties (beg end)
@@ -38,3 +41,5 @@
              (put-text-property (+ (point) 4) (line-end-position)
                                 'invisible 'dired-hide-details-link))))
         (forward-line 1)))))
+
+(provide 'pbui-dired)
