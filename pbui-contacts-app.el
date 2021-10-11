@@ -1,5 +1,6 @@
 (require 'request)
 (require 's)
+(require 'calendar)
 (require 'pbui)
 
 (defvar contacts-app:contacts nil)
