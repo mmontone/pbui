@@ -18,6 +18,7 @@
       ("C-c x X" . select-presentation-at-point-and-run-command)
       ("C-c x <deletechar>" . reset-presentation-command-arguments)
       ("C-c x x" . run-presentations-command)
+      ("C-c x v" . visualize-selected-presentations)
       ("C-<return>" . global-pbui-mode)))
    
    #+END_SRC
@@ -48,6 +49,8 @@
     After selecting presentations, use *x* key to run a command with the selected presentations as arguments.
 
     To clear the list of selected presentations use *DEL* key.
+
+    Press *v* to visualize a list of currently selected presentations.
 
     To exit the global *PBUI* mode use *ESC* key.
 
