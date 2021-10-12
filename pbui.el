@@ -279,14 +279,18 @@ We can use this function to `interactive' without needing to call
 
 (defun run-presentations-command (command-name)
   "Run a command that matches presentation arguments."
-  (interactive (list (pbui:read-command-name)))
-  (let ((command (gethash command-name pbui:commands)))
-    (when (null command)
-      (message "Command not found: %s" command-name))
-    (pbui:run-command command))
-  (reset-selected-presentations)
-  ;; Disable the global presentations mode after running a command
-  (disable-global-pbui-mode))
+  (interactive (list
+		(when (pbui:matching-presentations-commands)
+		  (pbui:read-command-name))))
+  (if (not command-name)
+      (message "No matching command for the selected presentations.")
+    (let ((command (gethash command-name pbui:commands)))
+      (when (null command)
+	(message "Command not found: %s" command-name))
+      (pbui:run-command command)
+      (reset-selected-presentations)
+      ;; Disable the global presentations mode after running a command
+      (disable-global-pbui-mode))))
 
 (defun presentation (value string &optional type)
   "Add presentation properties to STRING.

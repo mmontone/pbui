@@ -54,9 +54,10 @@
                            :title "Send email"
                            :description "Send email"
                            :applyable-when (lambda (args)
-                                             (every (lambda (arg)
-                                                      (eql (getf arg 'type) 'email))
-                                                    args)))
+                                             (and args
+                                                  (every (lambda (arg)
+                                                           (eql (getf arg 'type) 'email))
+                                                         args))))
   (&rest emails)
   (call-process "/usr/bin/xdg-open" nil nil nil
                 (format "mailto:%s" (s-join "," emails))))
