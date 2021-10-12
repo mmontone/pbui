@@ -641,6 +641,12 @@ mouse-2: toggle selection of this presentation"
   (interactive)
   (global-pbui-mode -1))
 
+;; Disable PBUI minor mode for the minibuffer
+(add-hook 'minibuffer-setup-hook
+	  (lambda ()
+	    (when pbui-mode
+	      (pbui-mode -1))))
+
 (provide 'pbui)
 
 ;;; pbui.el ends here
