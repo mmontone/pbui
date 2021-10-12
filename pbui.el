@@ -3,7 +3,7 @@
 ;; Copyright (C) 2021 Mariano Montone
 
 ;; Author: Mariano Montone <marianomontone@gmail.com>
-;; URL: https://github.com/mmontone/emacs-presentations
+;; URL: https://github.com/mmontone/pbui
 ;; Keywords: user-interface
 ;; Version: 0.1
 ;; Package-Requires: ((emacs "25") (dash "2.19.1"))
