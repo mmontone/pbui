@@ -1,9 +1,7 @@
 - FIX: we need to disable PBUI global minor mode when on Emacs mode-line, as the PBUI key bindings interfere with interaction there.
 - select-all-presentations-alike-at-point: command for selecting all presentations with the same type as the one at point in the buffer.
 - implement filtered selection of presentations. the user can select a predicate to use for selecting from a list of presentations.
-- make global minor mode global (fix)
-- make presentation mode appear in modeline and modeline menu.
-- command that opens popup buffer with currently selected presentations
+- make selected presentations buffer popup to the front.
 - select marked text as a presentation. for example, parse some text and create a date, path, etc. when enabled, select-presentation-at-point could fall back to select marked text as presentation, when there's marked text.
 - command to reverse the order of selected presentations?
 - consider implementing an interaction mode in which a command is selected first, and then its arguments are filled by selecting matching presentations after, like in CLIM.
