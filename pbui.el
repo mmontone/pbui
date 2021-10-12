@@ -283,7 +283,9 @@ We can use this function to `interactive' without needing to call
 		(when (pbui:matching-presentations-commands)
 		  (pbui:read-command-name))))
   (if (not command-name)
-      (message "No matching command for the selected presentations.")
+      (message (format "No matching command for the selected presentations (%d selected, %d in other buffers). Press v to view all selected presentations."
+		       (length pbui:selected-presentations)
+		       (length (remove-if-not (lambda (sel) (eql (getf sel 'buffer) (current-buffer))) pbui:selected-presentations))))
     (let ((command (gethash command-name pbui:commands)))
       (when (null command)
 	(message "Command not found: %s" command-name))
