@@ -612,7 +612,9 @@ mouse-2: toggle selection of this presentation"
 (defun visualize-selected-presentations ()
   (interactive)
   (if (get-buffer "*selected presentations*")
-      (pbui:refresh-selected-presentations)
+      (progn
+	(pbui:refresh-selected-presentations)
+	(switch-to-buffer-other-window "*selected presentations*"))
     (let ((buffer (get-buffer-create "*selected presentations*")))
       (with-current-buffer buffer
         (pbui:draw-selected-presentations)
