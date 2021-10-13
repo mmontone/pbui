@@ -45,8 +45,8 @@
 (defcustom pbui:reset-presentations-after-running-command t
   "Whether to reset presentations after running a command or not.")
 
-(defcustom pbui:exit-PBUI-mode-after-running-command t
-  "Wether to exit PBUI mode after running a command or not.")
+(defcustom pbui:exit-PBUI-modal-mode-after-running-command t
+  "Wether to exit PBUI modal mode after running a command or not.")
 
 ;;------ Faces -----------------------------------------------------------
 
@@ -351,8 +351,8 @@ We can use this function to `interactive' without needing to call
       (when pbui:reset-presentations-after-running-command
 	(reset-selected-presentations))
       ;; Disable the global presentations mode after running a command
-      (when (and pbui-mode pbui:exit-PBUI-mode-after-running-command)
-	(disable-global-pbui-mode)))))
+      (when (and pbui-modal-mode pbui:exit-PBUI-modal-mode-after-running-command)
+	(disable-pbui-modal-mode)))))
 
 (defun presentation (value string &optional type)
   "Add presentation properties to STRING.
@@ -542,21 +542,23 @@ mouse-2: toggle selection of this presentation"
 
 ;;--- PBUI mode ----------------------------------------------------------------
 
-(defvar pbui-mode-map
-  (let ((map (make-keymap)))
+(defvar pbui-command-map
+  (let ((map (make-sparse-keymap)))
     (define-key map (kbd "SPC") 'toggle-presentation-selected-at-point)
     (define-key map (kbd "X") 'select-presentation-at-point-and-run-command)
     (define-key map (kbd "<deletechar>") 'reset-selected-presentations)
     (define-key map (kbd "x") 'run-presentations-command)
+    (define-key map (kbd "v") 'visualize-selected-presentations)
     (define-key map (kbd "f") 'goto-next-presentation)
     (define-key map (kbd "b") 'goto-previous-presentation)
     (define-key map (kbd "n") 'goto-next-presentation)
     (define-key map (kbd "p") 'goto-previous-presentation)
-    (define-key map (kbd "q") 'disable-global-pbui-mode)
-    (define-key map (kbd "<escape>") 'disable-global-pbui-mode)
-    (define-key map (kbd "<mouse-2>") 'toggle-presentation-selected-at-point-handler)
-    (define-key map (kbd "v") 'visualize-selected-presentations)
     map))
+
+(fset 'pbui-command-map pbui-command-map)
+
+(defvar pbui-mode-map
+  (make-sparse-keymap))
 
 (define-minor-mode pbui-mode
   "Minor mode with quick keybindings for using presentations."
@@ -564,9 +566,9 @@ mouse-2: toggle selection of this presentation"
   :init-value nil
   ;; The indicator for the mode line.
   :lighter " PBUI"
-  ;; The minor mode bindings.
-  :keymap pbui-mode-map
+  :global t
   :group 'pbui
+  :keymap pbui-mode-map
   (if pbui-mode
       (pbui:initialize-pbui-mode)
     (pbui:release-pbui-mode)))
@@ -574,17 +576,15 @@ mouse-2: toggle selection of this presentation"
 (defun pbui:initialize-pbui-mode ()
   "Initialize PBUI mode."
   (propertize-presentations-in-buffer)
-  (highlight-selected-presentations)
-  (cursor-sensor-mode))
+  (highlight-selected-presentations))
 
 (defun pbui:release-pbui-mode ()
   (unhighlight-selected-presentations)
-  (pbui:clear-highlights-in-buffer)
-  (cursor-sensor-mode -1))
+  (pbui:clear-highlights-in-buffer))
 
-(easy-menu-define
-  pbui-mode-menu pbui-mode-map
-  "Menu for PBUI"
+(easy-menu-define pbui-mode-menu
+  pbui-mode-map
+  "Menu for PBUI."
   '("PBUI"
     ["Visualize selected presentations" visualize-selected-presentations
      :help "Popup a buffer with the list of selected presentations"]
@@ -603,9 +603,7 @@ mouse-2: toggle selection of this presentation"
      :help "Clear the list of selected presentations"]
     "---"
     ["Customize" pbui:customize
-     :help "Customize presentations mode"]
-    ["Quit" disable-global-pbui-mode
-     :help "Quit Presentations mode"]))
+     :help "Customize presentations mode"]))
 
 (defun pbui:customize ()
   (interactive)
@@ -677,20 +675,97 @@ mouse-2: toggle selection of this presentation"
     (goto-char pos)
     (toggle-presentation-selected-at-point)))
 
-(define-globalized-minor-mode global-pbui-mode
+;; The interactive PBUI mode
+
+;; The interactive PBUI mode highlights prensentations in buffers.
+
+(defvar pbui-interactive-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<mouse-2>") 'toggle-presentation-selected-at-point-handler)
+    ;;(set-keymap-parent map pbui-mode-map)
+    map))
+
+(define-globalized-minor-mode pbui-interactive-mode
   pbui-mode
   (lambda ()
-    (pbui-mode t)))
+    (pbui-mode t))
+  :keymap pbui-interactive-mode-map
+  (if pbui-interactive-mode
+      (pbui:initialize-pbui-interactive-mode)
+    (pbui:release-pbui-interactive-mode)))
 
-(defun disable-global-pbui-mode ()
+(defun pbui:initialize-pbui-interactive-mode ()
+  (cursor-sensor-mode))
+
+(defun pbui:release-pbui-interactive-mode ()
+  (cursor-sensor-mode -1))
+
+;; The modal PBUI mode
+
+(defvar pbui-modal-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "SPC") 'toggle-presentation-selected-at-point)
+    (define-key map (kbd "X") 'select-presentation-at-point-and-run-command)
+    (define-key map (kbd "<deletechar>") 'reset-selected-presentations)
+    (define-key map (kbd "x") 'run-presentations-command)
+    (define-key map (kbd "f") 'goto-next-presentation)
+    (define-key map (kbd "b") 'goto-previous-presentation)
+    (define-key map (kbd "n") 'goto-next-presentation)
+    (define-key map (kbd "p") 'goto-previous-presentation)
+    (define-key map (kbd "q") 'disable-pbui-modal-mode)
+    (define-key map (kbd "<escape>") 'disable-pbui-modal-mode)
+    (define-key map (kbd "<mouse-2>") 'toggle-presentation-selected-at-point-handler)
+    (define-key map (kbd "v") 'visualize-selected-presentations)
+    map))
+
+(easy-menu-define pbui-model-mode-menu
+  pbui-modal-mode-map
+  "Menu for modal PBUI."
+  '("PBUI Modal"
+    ["Visualize selected presentations" visualize-selected-presentations
+     :help "Popup a buffer with the list of selected presentations"]
+    ["Next presentation" goto-next-presentation
+     :help "Search next presentation in buffer"]
+    ["Previous presentation" goto-previous-presentation
+     :help "Search previous presentation in buffer"]
+    "---"
+    ["Toggle presentation selected at point" toggle-presentation-selected-at-point
+     :help "Select or unselect presentation at point"]
+    ["Run command with presentation at point..." select-presentation-at-point-and-run-command
+     :help "Select the presentation at point and run a command"]
+    ["Run command..." run-presentations-command
+     :help "Run command"]
+    ["Reset selected presentations" reset-selected-presentations
+     :help "Clear the list of selected presentations"]
+    "---"
+    ["Customize" pbui:customize
+     :help "Customize presentations mode"]
+    ["Quit" disable-pbui-modal-mode
+     :help "Quit Presentations mode"]))
+
+(define-globalized-minor-mode pbui-modal-mode
+  pbui-interactive-mode
+  (lambda ()
+    (pbui-interactive-mode t))
+  ;; The modal key bindings.
+  :keymap pbui-modal-mode-map)
+
+(defun disable-pbui-modal-mode ()
   (interactive)
-  (global-pbui-mode -1))
+  (pbui-modal-mode -1)
+  (pbui-interactive-mode -1))
+
+(defun pbui:initialize-pbui-modal-mode ()
+  (pbui:initialize-pbui-interactive-mode))
+
+(defun pbui:release-pbui-modal-mode ()
+  (pbui:release-pbui-interactive-mode))
 
 ;; Disable PBUI minor mode for the minibuffer
 (add-hook 'minibuffer-setup-hook
 	  (lambda ()
-	    (when pbui-mode
-	      (pbui-mode -1))))
+	    (when pbui-modal-mode
+	      (pbui-modal-mode -1))))
 
 (provide 'pbui)
 

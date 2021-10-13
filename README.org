@@ -19,7 +19,7 @@
       ("C-c x <deletechar>" . reset-presentation-command-arguments)
       ("C-c x x" . run-presentations-command)
       ("C-c x v" . visualize-selected-presentations)
-      ("C-<return>" . global-pbui-mode)))
+      ("C-<return>" . pbui-modal-mode)))
    
    #+END_SRC
 
