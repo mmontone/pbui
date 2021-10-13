@@ -38,9 +38,12 @@
 
    An example of that could be to first select a bunch of files and a directory, then run some command that works with those arguments, like *Move files to directory* or *Copy files to directory*.
 
+   Use *PBUI* global commands/keybindings or enter *PBUI* modal mode with *C-<return>*.
+   
+
 *** PBUI modes
 
-    **** PBUI global mode
+**** PBUI global mode
 
     The global mode *pbui-mode* is initialized in *.emacs* init file. It sets up PBUI commands bindings with a prefix key.
 
@@ -53,11 +56,11 @@
 
     This mode allows the operation on presentations across Emacs, but doesn't provide any feedback when cursor or mouse move over presentations.
 
-    **** PBUI interactive mode
+**** PBUI interactive mode
 
     The *pbui-interactive-mode* provides the same key bindings as *pbui-mode* but also highlights presentations when moving the text cursor or mouse over them.
 
-    **** PBUI modal mode
+**** PBUI modal mode
 
     The *pbui-modal-mode* offers a set of "modal" key bindings after it is enabled.
 
