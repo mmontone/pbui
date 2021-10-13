@@ -6,6 +6,8 @@
 
    This is work in progress.
 
+   [[file:docs/pbui.png]]
+
 ** Installation
 
    #+BEGIN_SRC emacs-lisp
@@ -14,13 +16,13 @@
 
    (use-package pbui
      :bind
-     (("C-c x SPC" . toggle-presentation-selected-at-point)
-      ("C-c x X" . select-presentation-at-point-and-run-command)
-      ("C-c x <deletechar>" . reset-presentation-command-arguments)
-      ("C-c x x" . run-presentations-command)
-      ("C-c x v" . visualize-selected-presentations)
-      ("C-<return>" . pbui-modal-mode)))
-   
+     ;; Key binding to start PBUI modal mode
+     (("C-<return>" . pbui-modal-mode))
+     :config (progn
+	       ;; Enable PBUI mode globally
+	       (pbui-mode +1)
+	       ;; PBUI commands prefix
+	       (define-key pbui-mode-map (kbd "C-c x") 'pbui-command-map)))   
    #+END_SRC
 
 ** Presentation Based User Interfaces
@@ -36,25 +38,48 @@
 
    An example of that could be to first select a bunch of files and a directory, then run some command that works with those arguments, like *Move files to directory* or *Copy files to directory*.
 
-*** PBUI mode
+*** PBUI modes
 
-    The global *PBUI* mode is enabled via *global-pbui-mode* Emacs command (bound to *C-<return>* if you used the configuration above).
+    **** PBUI global mode
 
-    *PBUI* implements a modal interface with combination-free keybindings for operating on presentations available in buffers.
+    The global mode *pbui-mode* is initialized in *.emacs* init file. It sets up PBUI commands bindings with a prefix key.
+
+    #+begin_src emacs-lisp
+      ;; Enable PBUI mode globally
+      (pbui-mode +1)
+      ;; PBUI commands prefix
+      (define-key pbui-mode-map (kbd "C-c x") 'pbui-command-map)
+    #+end_src
+
+    This mode allows the operation on presentations across Emacs, but doesn't provide any feedback when cursor or mouse move over presentations.
+
+    **** PBUI interactive mode
+
+    The *pbui-interactive-mode* provides the same key bindings as *pbui-mode* but also highlights presentations when moving the text cursor or mouse over them.
+
+    **** PBUI modal mode
+
+    The *pbui-modal-mode* offers a set of "modal" key bindings after it is enabled.
+
+    By default, you can enter the modal mode using *C-<return>*.
+
+    The modal keybindings are:
     
-    The *PBUI* mode highlights presentations available in buffers when mouse is hovered over them or the keyboard cursor is moved to their position.
+    *space*: Select/unselect presentation at point.
+      
+    *x* : Run commands with the selected presentations as arguments.
 
-    Presentations are selected/unselected using *toggle-presentation-selected-at-point* Emacs command (bound to *space* key when *PBUI* mode is active, or by using the mouse middle click).
+    *X* : Ensure presentation at point is selected and run command after.
+    
+    *DEL*: Clear the list of selected presentations.
 
-    After selecting presentations, use *x* key to run a command with the selected presentations as arguments.
+    *n* : Navigate to next presentation in current buffer.
+    
+    *b* : Navigate to previous presentation in current buffer.
 
-    To clear the list of selected presentations use *DEL* key.
+    *v*: visualize a list of currently selected presentations.
 
-    Press *v* to visualize a list of currently selected presentations.
-
-    To exit the global *PBUI* mode use *ESC* key.
-
-    [[file:docs/pbui.png]]
+    *ESC* or *q*: exit the PBUI modal mode.
 
 ** Demo application
 

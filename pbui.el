@@ -677,24 +677,22 @@ mouse-2: toggle selection of this presentation"
 
 ;; The interactive PBUI mode
 
-;; The interactive PBUI mode highlights prensentations in buffers.
-
 (defvar pbui-interactive-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "<mouse-2>") 'toggle-presentation-selected-at-point-handler)
     ;;(set-keymap-parent map pbui-mode-map)
     map))
 
-(define-globalized-minor-mode pbui-interactive-mode
-  pbui-mode
-  (lambda ()
-    (pbui-mode t))
+(define-minor-mode pbui-interactive-mode
+  "A PBUI mode that highlights prensentations in buffers."
   :keymap pbui-interactive-mode-map
+  :global t
   (if pbui-interactive-mode
       (pbui:initialize-pbui-interactive-mode)
     (pbui:release-pbui-interactive-mode)))
 
 (defun pbui:initialize-pbui-interactive-mode ()
+  (pbui-mode +1)
   (cursor-sensor-mode))
 
 (defun pbui:release-pbui-interactive-mode ()
@@ -743,12 +741,14 @@ mouse-2: toggle selection of this presentation"
     ["Quit" disable-pbui-modal-mode
      :help "Quit Presentations mode"]))
 
-(define-globalized-minor-mode pbui-modal-mode
-  pbui-interactive-mode
-  (lambda ()
-    (pbui-interactive-mode t))
+(define-minor-mode pbui-modal-mode
+  "A PBUI mode with modal key bindings."
   ;; The modal key bindings.
-  :keymap pbui-modal-mode-map)
+  :keymap pbui-modal-mode-map
+  :global t
+  (if pbui-modal-mode
+      (pbui:initialize-pbui-modal-mode)
+    (pbui:release-pbui-modal-mode)))
 
 (defun disable-pbui-modal-mode ()
   (interactive)
@@ -762,10 +762,18 @@ mouse-2: toggle selection of this presentation"
   (pbui:release-pbui-interactive-mode))
 
 ;; Disable PBUI minor mode for the minibuffer
+
 (add-hook 'minibuffer-setup-hook
 	  (lambda ()
+	    (make-local-variable 'pbui-modal-was-enabled)
+	    (setq pbui-modal-was-enabled pbui-modal-mode)
 	    (when pbui-modal-mode
 	      (pbui-modal-mode -1))))
+
+(add-hook 'minibuffer-exit-hook
+	  (lambda ()
+	    (when pbui-modal-was-enabled
+	      (pbui-modal-mode))))
 
 (provide 'pbui)
 
