@@ -30,6 +30,47 @@
 (require 'cl-lib)
 (require 'dash)
 
+;;------ Customization --------------------------------------------------
+
+(defgroup pbui ()
+  "Group for presentations.")
+
+(defvar pbui:selected-presentations nil
+  "The list of currently selected presentations.")
+
+(defcustom pbui:debug nil
+  "Debug PBUI."
+  :group 'pbui)
+
+(defcustom pbui:reset-presentations-after-running-command t
+  "Whether to reset presentations after running a command or not.")
+
+(defcustom pbui:exit-PBUI-mode-after-running-command t
+  "Wether to exit PBUI mode after running a command or not.")
+
+;;------ Faces -----------------------------------------------------------
+
+(defface presentation
+  '((t :box '(:line-width 1 :color "gray" :style nil)))
+  "Face for presentations in PBUI"
+  :group 'pbui)
+
+(defface selected-presentation
+  '((t :box '(:line-width 1 :color "gray" :style nil)
+       :background "lightyellow"))
+  "Face for presentations"
+  :group 'pbui)
+
+(defface presentations-button
+  '((((type x w32 ns) (class color))    ; Like default mode line
+     :box (:line-width 2 :style released-button)
+     :background "lightgrey" :foreground "black"))
+  "Face for custom buffer buttons if `custom-raised-buttons' is non-nil."
+  :group 'pbui)
+
+
+;;------- The command object ---------------------------------------------------
+
 (defclass pbui:command ()
   ((name :initarg :name
          :accessor pbui:command-name
@@ -60,13 +101,6 @@
                     :accessor pbui:command-arglist
                     :documentation "Used internally by PBUI for destructuring and managing command handlers arguments."))
   (:documentation "A command that runs with selected presentations as arguments."))
-
-(defvar pbui:selected-presentations nil
-  "The list of currently selected presentations.")
-
-(defcustom pbui:debug nil
-  "Debug PBUI"
-  :group 'pbui)
 
 (defun inspect-text-properties-at-point ()
   (interactive)
@@ -314,9 +348,11 @@ We can use this function to `interactive' without needing to call
       (when (null command)
 	(message "Command not found: %s" command-name))
       (pbui:run-command command)
-      (reset-selected-presentations)
+      (when pbui:reset-presentations-after-running-command
+	(reset-selected-presentations))
       ;; Disable the global presentations mode after running a command
-      (disable-global-pbui-mode))))
+      (when (and pbui-mode pbui:exit-PBUI-mode-after-running-command)
+	(disable-global-pbui-mode)))))
 
 (defun presentation (value string &optional type)
   "Add presentation properties to STRING.
@@ -329,27 +365,6 @@ VALUE is is the object being presented."
 (defun present (value string &optional type)
   "Create and insert presentation."
   (insert (presentation value string type)))
-
-(defgroup pbui ()
-  "Group for presentations")
-
-(defface presentation
-  '((t :box '(:line-width 1 :color "gray" :style nil)))
-  "Face for presentations in PBUI"
-  :group 'pbui)
-
-(defface selected-presentation
-  '((t :box '(:line-width 1 :color "gray" :style nil)
-       :background "lightyellow"))
-  "Face for presentations"
-  :group 'pbui)
-
-(defface presentations-button
-  '((((type x w32 ns) (class color))    ; Like default mode line
-     :box (:line-width 2 :style released-button)
-     :background "lightgrey" :foreground "black"))
-  "Face for custom buffer buttons if `custom-raised-buttons' is non-nil."
-  :group 'pbui)
 
 (defmacro with-write-buffer (&rest body)
   (let ((read-only-p (gensym "read-only")))
