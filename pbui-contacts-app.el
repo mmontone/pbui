@@ -180,9 +180,11 @@
                            :description "Send files in email"
                            :applyable-when (lambda (args)
                                              (and args
-                                                  (every (lambda (arg)
-                                                           (member (getf arg 'type) '(contacts-app:user email file)))
-                                                         args))))
+                                                  (some (lambda (arg)
+                                                           (member (getf arg 'type) '(contacts-app:user email)))
+                                                        args)
+						  (some (lambda (arg)
+							  (eql (getf arg 'type) 'file)) args))))
   ((users contacts-app:user) (emails email) (files file))
   (let ((all-emails (append (mapcar 'contacts-app:user-email users)
                             emails)))
