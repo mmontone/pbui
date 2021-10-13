@@ -64,6 +64,10 @@
 (defvar pbui:selected-presentations nil
   "The list of currently selected presentations.")
 
+(defcustom pbui:debug nil
+  "Debug PBUI"
+  :group 'pbui)
+
 (defun inspect-text-properties-at-point ()
   (interactive)
   (inspector-inspect (text-properties-at (point))))
@@ -189,18 +193,42 @@
                           :handler-arglist ',args
                           ,@options))))
 
+(defun pbui:arg-multiple-p (argname)
+  (cl-member (substring (symbol-name argname) -1) '("s" "*")
+                     :test 'string=))
+
+(defun pbui:find-presentations-matching-argument (argspec presentations)
+  "Find presentations in PRESENTATIONS that match ARGSPEC."
+  (destructuring-bind (argname argtype) argspec
+    (cl-flet ((matches-p (p)
+			 (eql (presentation-type p) argtype)))
+      (if (pbui:arg-multiple-p argname)
+	  ;; a multi-valued argument
+	  (remove-if-not #'matches-p presentations)
+	;; a single valued argument
+	(find-if #'matches-p presentations)))))
+
+(defun pbui:assign-presentations-to-arguments (command presentations)
+  "Assign PRESENTATIONS to COMMAND arguments."
+  (let ((ps (copy-list presentations)))
+    (cl-loop for argspec in (pbui:handler-arglist command)
+	     for matching-ps = (pbui:find-presentations-matching-argument argspec ps)
+	     do (setq ps (cl-set-difference ps matching-ps))
+	     collect (cons (first argspec) matching-ps))))
+
 (defun pbui:command-matches (command presentations)
-  "Return T if COMMAND matches PRESENTATIONS, and NIL otherwise."
+  "Return a list of (argument . presentation) when PRESENTATIONS match COMMAND, and NIL otherwise."
+  ;; If command has a matching predicate, use it
   (if (matching-predicate command)
-      (ignore-errors (funcall (matching-predicate command) presentations))
-    (and (= (length (pbui:command-argument-types command))
-            (length presentations))
-         (every 'identity
-                (mapcar (lambda (x)
-                          (eql (getf (first x) 'type) (second x)))
-                        (-zip-lists
-                         (reverse presentations)
-                         (pbui:command-argument-types command)))))))
+      (if pbui:debug
+	  (funcall (matching-predicate command) presentations)
+	(ignore-errors (funcall (matching-predicate command) presentations)))
+    ;; otherwise, a command matches the presentations if there are presentations for every argument in the command
+    (let ((ps (copy-list presentations)))
+      (let ((arg-matches
+	     (pbui:assign-presentations-to-arguments command presentations)))
+	(when (not (position nil (mapcar 'cdr arg-matches)))
+	  arg-matches)))))
 
 (defun pbui:matching-presentations-commands ()
   "Return a list of the matching commands for added presentation arguments."
@@ -212,6 +240,9 @@
            collect command))
 
 (defun pbui:run-command (command)
+  "Run COMMAND.
+It is assumed that COMMAND matches the currently selected presentations.
+See: `pbui:command-matches'"
   (let ((ps (mapcar (lambda (sel)
                       (getf sel 'presentation))
                     pbui:selected-presentations)))
@@ -221,21 +252,14 @@
                (mapcar 'presentation-value
                        (reverse ps)))
       ;; else
-      ;; destructure handler arg list using presentation types
-      (let ((actual-args nil))
-        (dolist (argspec (pbui:handler-arglist command))
-          (destructuring-bind (argname argtype) argspec
-            (if (cl-member (substring (symbol-name argname) -1) '("s" "*")
-                           :test 'string=)
-                ;; a multi-valued argument
-                (push (cl-loop for p in ps
-                               when (eql (presentation-type p) argtype)
-                               collect (presentation-value p))
-                      actual-args)
-              ;; a single-valued argument
-              (push (cl-find argtype ps :key 'presentation-type)
-                    actual-args))))
-        (apply (pbui:command-handler command) (reverse actual-args))))))
+      (let ((arg-values (pbui:assign-presentations-to-arguments command ps)))
+	(apply (pbui:command-handler command)
+	       (mapcar (lambda (arg-value)
+			 (let ((ps (cdr arg-value)))
+			   (if (pbui:arg-multiple-p (car arg-value))
+			       (mapcar 'presentation-value ps)
+			     (presentation-value ps))))
+		       arg-values))))))
 
 ;; See: http://www.howardism.org/Technical/Emacs/alt-completing-read.html
 (defun alt-completing-read (prompt collection &optional predicate require-match initial-input hist def inherit-input-method)

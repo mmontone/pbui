@@ -136,14 +136,8 @@
 
 (def-presentation-command (contacts-app:delete-contacts
                            :title "Delete contacts"
-                           :description "Delete contacts"
-                           :applyable-when (lambda (args)
-                                             (and args
-                                                  (every (lambda (arg)
-                                                           (eql (getf arg 'type)
-                                                                'contacts-app:user))
-                                                         args))))
-  (&rest users)
+                           :description "Delete contacts")
+  ((users contacts-app:user))
   (when (yes-or-no-p (format "Delete %d selected contacts?"
                              (length users)))
     (let ((users-ids (remove-if 'null (mapcar 'contacts-app:user-id users))))
@@ -161,14 +155,9 @@
 
 (def-presentation-command (contacts-app:send-email
                            :title "Send email"
-                           :description "Send email to contacts"
-                           :applyable-when (lambda (args)
-                                             (and args
-                                                  (every (lambda (arg)
-                                                           (eql (getf arg 'type)
-                                                                'contacts-app:user))
-                                                         args))))
-  (&rest users)
+                           :description "Send email to contacts")
+                           
+  ((users contacts-app:user))
   (call-process "/usr/bin/xdg-open" nil nil nil
                 (format "mailto:%s" (s-join "," (mapcar 'contacts-app:user-email users)))))
 
@@ -192,7 +181,7 @@
                            :applyable-when (lambda (args)
                                              (and args
                                                   (every (lambda (arg)
-                                                           (member (getf arg 'type) '(contacts-app:user 'email file)))
+                                                           (member (getf arg 'type) '(contacts-app:user email file)))
                                                          args))))
   ((users contacts-app:user) (emails email) (files file))
   (let ((all-emails (append (mapcar 'contacts-app:user-email users)

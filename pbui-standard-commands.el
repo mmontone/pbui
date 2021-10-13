@@ -64,30 +64,17 @@
 
 (def-presentation-command (standard-commands:copy-files-to-directory
                            :title "Copy files to directory"
-                           :description "Copy files to directory"
-                           :applyable-when (lambda (args)
-                                             (and (every (lambda (arg)
-                                                           (eql (getf arg 'type)
-                                                                'file))
-                                                         (butlast args))
-                                                  (eql (getf (car (last args)) 'type)
-                                                       'file))))
-  (&rest args)
-  (let ((files (butlast args))
-        (dir (car (last args))))
-    (dolist (file files)
-      (copy-file file dir))
-    (message "Files copied to directory")))
+                           :description "Copy files to directory")
+  ((files file) (dir directory))
+  (dolist (file files)
+    (copy-file file dir))
+  (message "Files copied to directory"))
 
 (def-presentation-command (send-email
                            :title "Send email"
-                           :description "Send email"
-                           :applyable-when (lambda (args)
-                                             (and args
-                                                  (every (lambda (arg)
-                                                           (eql (getf arg 'type) 'email))
-                                                         args))))
-  (&rest emails)
+                           :description "Send email")
+                           
+  ((emails email))
   (call-process "/usr/bin/xdg-open" nil nil nil
                 (format "mailto:%s" (s-join "," emails))))
 
