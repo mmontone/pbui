@@ -57,10 +57,10 @@
   (message "File moved to trash"))
 
 (defun presentation-type (presentation)
-  (getf presentation 'type))
+  (cl-getf presentation 'type))
 
 (defun presentation-value (presentation)
-  (getf presentation 'value))
+  (cl-getf presentation 'value))
 
 (def-presentation-command (standard-commands:copy-files-to-directory
                            :title "Copy files to directory"

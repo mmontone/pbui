@@ -32,6 +32,7 @@
 (require 'request)
 (require 's)
 (require 'calendar)
+(require 'outline)
 (require 'pbui)
 
 (defvar contacts-app:contacts nil)
@@ -126,7 +127,7 @@
                                      (list 'type 'calendar-event
                                            'value (contacts-app:create-user-birthday-event user)
                                            'printer (lambda (event)
-                                                      (format "Calendar event - %s" (getf event 'title)))))))
+                                                      (format "Calendar event - %s" (cl-getf event 'title)))))))
 
                (newline))
       (outline-mode)
@@ -140,7 +141,7 @@
   ((users contacts-app:user))
   (when (yes-or-no-p (format "Delete %d selected contacts?"
                              (length users)))
-    (let ((users-ids (remove-if 'null (mapcar 'contacts-app:user-id users))))
+    (let ((users-ids (cl-remove-if 'null (mapcar 'contacts-app:user-id users))))
       (setf contacts-app:contacts
             (cl-delete-if (lambda (user)
                             (cl-member (contacts-app:user-id user)
@@ -156,7 +157,7 @@
 (def-presentation-command (contacts-app:send-email
                            :title "Send email"
                            :description "Send email to contacts")
-                           
+
   ((users contacts-app:user))
   (call-process "/usr/bin/xdg-open" nil nil nil
                 (format "mailto:%s" (s-join "," (mapcar 'contacts-app:user-email users)))))
@@ -167,12 +168,12 @@
   ((event calendar-event))
   (call-process "/usr/bin/xdg-open" nil nil nil
                 (format "http://www.google.com/calendar/render?action=TEMPLATE&text=%s&dates=%s&details=%s&location=%s"
-                        (getf event 'title)
+                        (cl-getf event 'title)
                         (format "%s%s%s"
-                                (nth 5 (getf event 'date))
-                                (nth 4 (getf event 'date))
-                                (nth 3 (getf event 'date)))
-                        (getf event 'description)
+                                (nth 5 (cl-getf event 'date))
+                                (nth 4 (cl-getf event 'date))
+                                (nth 3 (cl-getf event 'date)))
+                        (cl-getf event 'description)
                         "")))
 
 (def-presentation-command (contacts-app:send-files-in-email
@@ -180,11 +181,11 @@
                            :description "Send files by email"
                            :applyable-when (lambda (args)
                                              (and args
-                                                  (some (lambda (arg)
-                                                           (member (getf arg 'type) '(contacts-app:user email)))
-                                                        args)
-						  (some (lambda (arg)
-							  (eql (getf arg 'type) 'file)) args))))
+                                                  (cl-some (lambda (arg)
+                                                             (member (cl-getf arg 'type) '(contacts-app:user email)))
+                                                           args)
+                                                  (cl-some (lambda (arg)
+                                                             (eql (cl-getf arg 'type) 'file)) args))))
   ((users contacts-app:user) (emails email) (files file))
   (let ((all-emails (append (mapcar 'contacts-app:user-email users)
                             emails)))

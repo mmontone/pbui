@@ -33,20 +33,27 @@
 ;;------ Customization --------------------------------------------------
 
 (defgroup pbui ()
-  "Group for presentations.")
+  "Group for presentations."
+  :group 'tools
+  :group 'convenience
+  :link '(url-link :tag "GitHub" "https://github.com/mmontone/pbui"))
 
 (defvar pbui:selected-presentations nil
   "The list of currently selected presentations.")
 
 (defcustom pbui:debug nil
   "Debug PBUI."
+  :type 'boolean
   :group 'pbui)
 
 (defcustom pbui:reset-presentations-after-running-command t
-  "Whether to reset presentations after running a command or not.")
+  "Whether to reset presentations after running a command or not."
+  :type 'boolean
+  :group 'pbui)
 
 (defcustom pbui:exit-PBUI-modal-mode-after-running-command t
-  "Wether to exit PBUI modal mode after running a command or not.")
+  "Wether to exit PBUI modal mode after running a command or not."
+  :type 'boolean)
 
 ;;------ Faces -----------------------------------------------------------
 
@@ -102,15 +109,6 @@
                     :documentation "Used internally by PBUI for destructuring and managing command handlers arguments."))
   (:documentation "A command that runs with selected presentations as arguments."))
 
-(defun inspect-text-properties-at-point ()
-  (interactive)
-  (inspector-inspect (text-properties-at (point))))
-
-(defun inspect-presentation-at-point ()
-  (interactive)
-  (let ((presentation (presentation-at-point)))
-    (inspector-inspect presentation)))
-
 (defun presentation-at-point ()
   (interactive)
   (get-text-property (point) 'presentation))
@@ -124,7 +122,13 @@
 
 (defun presentation-selected-p (presentation)
   (cl-find presentation pbui:selected-presentations
-           :key (lambda (sel) (getf sel 'presentation))))
+           :key (lambda (sel) (cl-getf sel 'presentation))))
+
+(defun presentation-value (presentation)
+  (cl-getf presentation 'value))
+
+(defun presentation-type (presentation)
+  (cl-getf presentation 'type))
 
 (defun ensure-selected-presentation-at-point ()
   "Ensure that presentation at point is selected."
@@ -146,16 +150,16 @@
       (message "No presentation at point"))))
 
 (defun pbui:goto-selected-presentation (selected-presentation)
-  (let ((buffer (getf sel 'buffer)))
+  (let ((buffer (cl-getf sel 'buffer)))
     (when (buffer-live-p buffer)
       (switch-to-buffer-other-window buffer)
       (with-current-buffer buffer
-        (goto-char (getf sel 'position))))))
+        (goto-char (cl-getf sel 'position))))))
 
 (defun pbui:print-presentation (presentation)
-  (if (getf presentation 'printer)
-      (funcall (getf presentation 'printer) (getf presentation 'value))
-    (getf presentation 'value)))
+  (if (cl-getf presentation 'printer)
+      (funcall (cl-getf presentation 'printer) (cl-getf presentation 'value))
+    (cl-getf presentation 'value)))
 
 (defun pbui:add-selected-presentation (presentation buffer position)
   ;; We record the presentation and buffer and position for selected presentations
@@ -180,7 +184,7 @@
       (message "No presentation at point"))))
 
 (defun pbui:remove-selected-presentation (presentation)
-  (setq pbui:selected-presentations (cl-delete presentation pbui:selected-presentations :key (lambda (sel) (getf sel 'presentation))))
+  (setq pbui:selected-presentations (cl-delete presentation pbui:selected-presentations :key (lambda (sel) (cl-getf sel 'presentation))))
   (pbui:refresh-selected-presentations))
 
 (defun unselect-presentation-at-point ()
@@ -192,9 +196,9 @@
           (pbui:remove-selected-presentation presentation)
           (unhighlight-presentation-at-point)
           (message "Unselected: %s"
-                   (if (getf presentation 'printer)
-                       (funcall (getf presentation 'printer) (getf presentation 'value))
-                     (getf presentation 'value))))
+                   (if (cl-getf presentation 'printer)
+                       (funcall (cl-getf presentation 'printer) (cl-getf presentation 'value))
+                     (cl-getf presentation 'value))))
       (message "No presentation at point"))))
 
 (defun select-presentation-at-point-and-run-command ()
@@ -218,7 +222,7 @@
     `(setf (gethash ',command-name pbui:commands)
            (make-instance 'pbui:command
                           :name ',command-name
-                          :argument-types ',(and (not (getf options :applyable-when))
+                          :argument-types ',(and (not (cl-getf options :applyable-when))
                                                  (mapcar 'second args))
                           :handler (lambda ,(if (eql (first args) '&rest)
                                                 args
@@ -229,47 +233,47 @@
 
 (defun pbui:arg-multiple-p (argname)
   (cl-member (substring (symbol-name argname) -1) '("s" "*")
-                     :test 'string=))
+             :test 'string=))
 
 (defun pbui:find-presentations-matching-argument (argspec presentations)
   "Find presentations in PRESENTATIONS that match ARGSPEC."
-  (destructuring-bind (argname argtype) argspec
+  (cl-destructuring-bind (argname argtype) argspec
     (cl-flet ((matches-p (p)
-			 (eql (presentation-type p) argtype)))
+                         (eql (presentation-type p) argtype)))
       (if (pbui:arg-multiple-p argname)
-	  ;; a multi-valued argument
-	  (remove-if-not #'matches-p presentations)
-	;; a single valued argument
-	(find-if #'matches-p presentations)))))
+          ;; a multi-valued argument
+          (cl-remove-if-not #'matches-p presentations)
+        ;; a single valued argument
+        (cl-find-if #'matches-p presentations)))))
 
 (defun pbui:assign-presentations-to-arguments (command presentations)
   "Assign PRESENTATIONS to COMMAND arguments."
-  (let ((ps (copy-list presentations)))
+  (let ((ps (cl-copy-list presentations)))
     (cl-loop for argspec in (pbui:command-arglist command)
-	     for matching-ps = (pbui:find-presentations-matching-argument argspec ps)
-	     do (setq ps (cl-set-difference ps matching-ps))
-	     collect (cons (first argspec) matching-ps))))
+             for matching-ps = (pbui:find-presentations-matching-argument argspec ps)
+             do (setq ps (cl-set-difference ps matching-ps))
+             collect (cons (first argspec) matching-ps))))
 
 (defun pbui:command-matches (command presentations)
   "Return a list of (argument . presentation) when PRESENTATIONS match COMMAND, and NIL otherwise."
   ;; If command has a matching predicate, use it
   (if (matching-predicate command)
       (if pbui:debug
-	  (funcall (matching-predicate command) presentations)
-	(ignore-errors (funcall (matching-predicate command) presentations)))
+          (funcall (matching-predicate command) presentations)
+        (ignore-errors (funcall (matching-predicate command) presentations)))
     ;; otherwise, a command matches the presentations if there are presentations for every argument in the command
-    (let ((ps (copy-list presentations)))
+    (let ((ps (cl-copy-list presentations)))
       (let ((arg-matches
-	     (pbui:assign-presentations-to-arguments command presentations)))
-	(when (not (position nil (mapcar 'cdr arg-matches)))
-	  arg-matches)))))
+             (pbui:assign-presentations-to-arguments command presentations)))
+        (when (not (cl-position nil (mapcar 'cdr arg-matches)))
+          arg-matches)))))
 
 (defun pbui:matching-presentations-commands ()
   "Return a list of the matching commands for added presentation arguments."
   (cl-loop for command in (hash-table-values pbui:commands)
            when (pbui:command-matches
                  command
-                 (mapcar (lambda (sel) (getf sel 'presentation))
+                 (mapcar (lambda (sel) (cl-getf sel 'presentation))
                          pbui:selected-presentations))
            collect command))
 
@@ -278,7 +282,7 @@
 It is assumed that COMMAND matches the currently selected presentations.
 See: `pbui:command-matches'"
   (let ((ps (mapcar (lambda (sel)
-                      (getf sel 'presentation))
+                      (cl-getf sel 'presentation))
                     pbui:selected-presentations)))
     (if (eql (first (pbui:command-arglist command))
              '&rest)
@@ -287,13 +291,13 @@ See: `pbui:command-matches'"
                        (reverse ps)))
       ;; else
       (let ((arg-values (pbui:assign-presentations-to-arguments command ps)))
-	(apply (pbui:command-handler command)
-	       (mapcar (lambda (arg-value)
-			 (let ((ps (cdr arg-value)))
-			   (if (pbui:arg-multiple-p (car arg-value))
-			       (mapcar 'presentation-value ps)
-			     (presentation-value ps))))
-		       arg-values))))))
+        (apply (pbui:command-handler command)
+               (mapcar (lambda (arg-value)
+                         (let ((ps (cdr arg-value)))
+                           (if (pbui:arg-multiple-p (car arg-value))
+                               (mapcar 'presentation-value ps)
+                             (presentation-value ps))))
+                       arg-values))))))
 
 ;; See: http://www.howardism.org/Technical/Emacs/alt-completing-read.html
 (defun alt-completing-read (prompt collection &optional predicate require-match initial-input hist def inherit-input-method)
@@ -338,21 +342,21 @@ We can use this function to `interactive' without needing to call
 (defun run-presentations-command (command-name)
   "Run a command that matches presentation arguments."
   (interactive (list
-		(when (pbui:matching-presentations-commands)
-		  (pbui:read-command-name))))
+                (when (pbui:matching-presentations-commands)
+                  (pbui:read-command-name))))
   (if (not command-name)
       (message (format "No matching command for the selected presentations (%d selected, %d in other buffers). Press v to view all selected presentations."
-		       (length pbui:selected-presentations)
-		       (length (remove-if-not (lambda (sel) (eql (getf sel 'buffer) (current-buffer))) pbui:selected-presentations))))
+                       (length pbui:selected-presentations)
+                       (length (cl-remove-if-not (lambda (sel) (eql (cl-getf sel 'buffer) (current-buffer))) pbui:selected-presentations))))
     (let ((command (gethash command-name pbui:commands)))
       (when (null command)
-	(message "Command not found: %s" command-name))
+        (message "Command not found: %s" command-name))
       (pbui:run-command command)
       (when pbui:reset-presentations-after-running-command
-	(reset-selected-presentations))
+        (reset-selected-presentations))
       ;; Disable the global presentations mode after running a command
       (when (and pbui-modal-mode pbui:exit-PBUI-modal-mode-after-running-command)
-	(disable-pbui-modal-mode)))))
+        (disable-pbui-modal-mode)))))
 
 (defun presentation (value string &optional type)
   "Add presentation properties to STRING.
@@ -401,11 +405,11 @@ VALUE is is the object being presented."
                                 'font-lock-face nil))))))))
 
 (defun pbui:highlight-selected-presentation (selection)
-  (let ((buffer (getf selection 'buffer)))
+  (let ((buffer (cl-getf selection 'buffer)))
     (when (buffer-live-p buffer)
       (with-current-buffer buffer
         (save-excursion
-          (goto-char (1+ (getf selection 'position)))
+          (goto-char (1+ (cl-getf selection 'position)))
           (let ((presentation (presentation-at-point)))
             (when presentation
               (let ((prop (text-property-search-backward 'presentation))
@@ -416,11 +420,11 @@ VALUE is is the object being presented."
                                     'font-lock-face 'selected-presentation))))))))))
 
 (defun pbui:unhighlight-selected-presentation (selection)
-  (let ((buffer (getf selection 'buffer)))
+  (let ((buffer (cl-getf selection 'buffer)))
     (when (buffer-live-p buffer)
       (with-current-buffer buffer
         (save-excursion
-          (goto-char (1+ (getf selection 'position)))
+          (goto-char (1+ (cl-getf selection 'position)))
           (let ((prop (text-property-search-backward 'presentation))
                 (prop-next (text-property-search-forward 'presentation)))
             (with-write-buffer
@@ -616,10 +620,10 @@ mouse-2: toggle selection of this presentation"
       (insert "There are not presentations selected")
     (progn
       (dolist (sel pbui:selected-presentations)
-        (let ((presentation (getf sel 'presentation)))
+        (let ((presentation (cl-getf sel 'presentation)))
           (insert-button (format "%s [%s]"
                                  (pbui:print-presentation presentation)
-                                 (getf presentation 'type))
+                                 (cl-getf presentation 'type))
                          'help-echo "Go to presentation"
                          'follow-link t
                          'action (lambda (btn)
@@ -656,8 +660,8 @@ mouse-2: toggle selection of this presentation"
   (interactive)
   (if (get-buffer "*selected presentations*")
       (progn
-	(pbui:refresh-selected-presentations)
-	(switch-to-buffer-other-window "*selected presentations*"))
+        (pbui:refresh-selected-presentations)
+        (switch-to-buffer-other-window "*selected presentations*"))
     (let ((buffer (get-buffer-create "*selected presentations*")))
       (with-current-buffer buffer
         (pbui:draw-selected-presentations)
@@ -764,16 +768,16 @@ mouse-2: toggle selection of this presentation"
 ;; Disable PBUI minor mode for the minibuffer
 
 (add-hook 'minibuffer-setup-hook
-	  (lambda ()
-	    (make-local-variable 'pbui-modal-was-enabled)
-	    (setq pbui-modal-was-enabled pbui-modal-mode)
-	    (when pbui-modal-mode
-	      (pbui-modal-mode -1))))
+          (lambda ()
+            (make-local-variable 'pbui-modal-was-enabled)
+            (setq pbui-modal-was-enabled pbui-modal-mode)
+            (when pbui-modal-mode
+              (pbui-modal-mode -1))))
 
 (add-hook 'minibuffer-exit-hook
-	  (lambda ()
-	    (when pbui-modal-was-enabled
-	      (pbui-modal-mode))))
+          (lambda ()
+            (when pbui-modal-was-enabled
+              (pbui-modal-mode))))
 
 (provide 'pbui)
 
