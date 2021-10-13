@@ -8,3 +8,5 @@
 - consider adding an ordered option to commands, that indicates if the command parameters should come in order or not for it to match.
 - IDEA: updating presentations. Presentations that listen to some event and redisplay when a change occurs.
 - IMPLEMENT UNIT TESTS!!
+- Write a TexInfo manual.
+- Package and ship accordingly.
