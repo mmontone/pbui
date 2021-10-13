@@ -6,6 +6,7 @@
 - consider the possibility of adding options to commands, and let the user select them before running (look at magit-popup library!).
 - consider adding a multiplicity option to parameters in commands. for example, (users user :multiple t).
 - consider adding an ordered option to commands, that indicates if the command parameters should come in order or not for it to match.
+- Dired extension: add Dired directory presentations.
 - IDEA: updating presentations. Presentations that listen to some event and redisplay when a change occurs.
 - IMPLEMENT UNIT TESTS!!
 - Write a TexInfo manual.
