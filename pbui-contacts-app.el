@@ -176,8 +176,8 @@
                         "")))
 
 (def-presentation-command (contacts-app:send-files-in-email
-                           :title "Send files in email"
-                           :description "Send files in email"
+                           :title "Send files by email"
+                           :description "Send files by email"
                            :applyable-when (lambda (args)
                                              (and args
                                                   (some (lambda (arg)

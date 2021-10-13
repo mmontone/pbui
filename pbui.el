@@ -56,8 +56,8 @@
             :accessor pbui:command-handler
             :type (or function symbol)
             :documentation "A function for running the command. Takes instances of ARGUMENT-TYPES as arguments.")
-   (handler-arglist :initarg :handler-arglist
-                    :accessor pbui:handler-arglist
+   (command-arglist :initarg :command-arglist
+                    :accessor pbui:command-arglist
                     :documentation "Used internally by PBUI for destructuring and managing command handlers arguments."))
   (:documentation "A command that runs with selected presentations as arguments."))
 
@@ -190,7 +190,7 @@
                                                 args
                                               (mapcar 'first args))
                                      ,@body)
-                          :handler-arglist ',args
+                          :command-arglist ',args
                           ,@options))))
 
 (defun pbui:arg-multiple-p (argname)
@@ -211,7 +211,7 @@
 (defun pbui:assign-presentations-to-arguments (command presentations)
   "Assign PRESENTATIONS to COMMAND arguments."
   (let ((ps (copy-list presentations)))
-    (cl-loop for argspec in (pbui:handler-arglist command)
+    (cl-loop for argspec in (pbui:command-arglist command)
 	     for matching-ps = (pbui:find-presentations-matching-argument argspec ps)
 	     do (setq ps (cl-set-difference ps matching-ps))
 	     collect (cons (first argspec) matching-ps))))
@@ -246,7 +246,7 @@ See: `pbui:command-matches'"
   (let ((ps (mapcar (lambda (sel)
                       (getf sel 'presentation))
                     pbui:selected-presentations)))
-    (if (eql (first (pbui:handler-arglist command))
+    (if (eql (first (pbui:command-arglist command))
              '&rest)
         (apply (pbui:command-handler command)
                (mapcar 'presentation-value
