@@ -58,7 +58,7 @@
                   (filename-end (progn (dired-move-to-end-of-filename)
                                        (point)))
                   (filename (buffer-substring-no-properties filename-start filename-end))
-		  (filepath (string-trim (concatenate 'string directory-name "/" filename))))
+                  (filepath (string-trim (cl-concatenate 'string directory-name "/" filename))))
              (add-text-properties
               filename-start
               filename-end
@@ -67,9 +67,9 @@
                 dired-filename t
                 help-echo "mouse-2: visit this file in other window"
                 presentation (type ,(if (file-directory-p filepath)
-					'directory
-				      'file)
-				   value ,filepath))))
+                                        'directory
+                                      'file)
+                                   value ,filepath))))
            (when (< (+ (point) 4) (line-end-position))
              (put-text-property (+ (point) 4) (line-end-position)
                                 'invisible 'dired-hide-details-link))))
