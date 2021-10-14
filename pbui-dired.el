@@ -66,7 +66,10 @@
                 highlight
                 dired-filename t
                 help-echo "mouse-2: visit this file in other window"
-                presentation (type file value ,filepath))))
+                presentation (type ,(if (file-directory-p filepath)
+					'directory
+				      'file)
+				   value ,filepath))))
            (when (< (+ (point) 4) (line-end-position))
              (put-text-property (+ (point) 4) (line-end-position)
                                 'invisible 'dired-hide-details-link))))
