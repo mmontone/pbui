@@ -8,6 +8,7 @@
 - consider adding an ordered option to commands, that indicates if the command parameters should come in order or not for it to match.
 - Dired extension: add Dired directory presentations.
 - Consider predicates as types in presentations definitions. '(type-predicate my-app:user-p value user).
+- Implement commands UNDO??
 - IDEA: updating presentations. Presentations that listen to some event and redisplay when a change occurs.
 - IMPLEMENT UNIT TESTS!!
 - Write a TexInfo manual.
