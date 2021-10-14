@@ -29,46 +29,38 @@
 
 (require 'pbui)
 
-(def-presentation-command (standard-commands:open-file
-                           :title "Open file"
-                           :description "Open the file in a new buffer")
-  ((file file))
-  (find-file file))
-
-(def-presentation-command (standard-commands:copy-file-to-directory
-                           :title "Copy file to directory"
-                           :description "Copy file to directory")
-  ((file file) (dir directory))
-  (copy-file file dir)
-  (message "File copied to directory"))
-
-(def-presentation-command (standard-commands:move-file-to-directory
-                           :title "Move file to directory"
-                           :description "Move file to directory")
-  ((file file) (dir directory))
-  (rename-file file dir)
-  (message "File moved to directory"))
-
-(def-presentation-command (standard-commands:move-file-to-trash
-                           :title "Move file to trash"
-                           :description "Move file to trash")
-  ((file file))
-  (move-file-to-trash file)
-  (message "File moved to trash"))
-
-(defun presentation-type (presentation)
-  (cl-getf presentation 'type))
-
-(defun presentation-value (presentation)
-  (cl-getf presentation 'value))
+(def-presentation-command (standard-commands:open-files
+                           :title "Open file(s)"
+                           :description "Open file(s) in a new buffer")
+  ((files file))
+  (dolist (file files)
+    (find-file file)))
 
 (def-presentation-command (standard-commands:copy-files-to-directory
-                           :title "Copy files to directory"
-                           :description "Copy files to directory")
+                           :title "Copy file(s) to directory"
+                           :description "Copy file(s) to directory")
   ((files file) (dir directory))
   (dolist (file files)
-    (copy-file file dir))
-  (message "Files copied to directory"))
+    (copy-file file
+	       (file-name-concat dir (file-name-nondirectory file))))
+  (message (format "%d files copied to %s" (length files) dir)))
+
+(def-presentation-command (standard-commands:move-files-to-directory
+                           :title "Move file(s) to directory"
+                           :description "Move file(s) to directory")
+  ((files file) (dir directory))
+  (dolist (file files)
+    (rename-file file
+		 (file-name-concat dir (file-name-nondirectory file))))
+  (message (format "%d files moved to %s" (length files) dir)))
+
+(def-presentation-command (standard-commands:move-files-to-trash
+                           :title "Move file(s) to trash"
+                           :description "Move file(s) to trash")
+  ((files file))
+  (dolist (file files)
+    (move-file-to-trash file))
+  (message (format "%d files moved to trash" (length files))))
 
 (def-presentation-command (send-email
                            :title "Send email"
