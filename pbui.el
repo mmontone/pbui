@@ -611,6 +611,8 @@ mouse-2: toggle selection of this presentation"
      :help "Run command"]
     ["Reset selected presentations" reset-selected-presentations
      :help "Clear the list of selected presentations"]
+    ["Enter modal mode" pbui-modal-mode
+     :help "Enter PBUI modal mode"]
     "---"
     ["Customize" pbui:customize
      :help "Customize presentations mode"]))
@@ -747,10 +749,8 @@ mouse-2: toggle selection of this presentation"
     ["Reset selected presentations" reset-selected-presentations
      :help "Clear the list of selected presentations"]
     "---"
-    ["Customize" pbui:customize
-     :help "Customize presentations mode"]
     ["Quit" disable-pbui-modal-mode
-     :help "Quit Presentations mode"]))
+     :help "Quit PBUI modal mode"]))
 
 (define-minor-mode pbui-modal-mode
   "A PBUI mode with modal key bindings."
