@@ -36,6 +36,15 @@
   (dolist (file files)
     (find-file file)))
 
+(def-presentation-command (standard-commands:delete-files
+                           :title "Delete file(s)"
+                           :description "Delete file(s)")
+  ((files file))
+  (when (yes-or-no-p (format "Delete the %d selected files?" (length files)))
+    (dolist (file files)
+      (delete-file file))
+    (message (format "%d files deleted" (length files)))))
+
 (def-presentation-command (standard-commands:copy-files-to-directory
                            :title "Copy file(s) to directory"
                            :description "Copy file(s) to directory")
