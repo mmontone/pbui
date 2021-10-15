@@ -50,7 +50,7 @@
       ;; Enable PBUI mode globally
       (pbui-mode +1)
       ;; PBUI commands prefix
-      (define-key pbui-mode-map (kbd "C-c x") 'pbui-command-map)
+      (define-key pbui-mode-map (kbd "C-<return>") 'pbui-command-map)
     #+end_src
 
     This mode allows the operation on presentations across Emacs, but doesn't provide any feedback when cursor or mouse move over presentations.
@@ -63,7 +63,7 @@
 
     The *pbui-modal-mode* offers a set of "modal" key bindings after it is enabled.
 
-    By default, you can enter the modal mode using *C-<return>*.
+    By default, you can enter the modal mode using *C-<return> <return>*.
 
     The modal keybindings are:
     
