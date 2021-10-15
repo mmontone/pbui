@@ -715,7 +715,6 @@ mouse-2: toggle selection of this presentation"
     (define-key map (kbd "b") 'goto-previous-presentation)
     (define-key map (kbd "n") 'goto-next-presentation)
     (define-key map (kbd "p") 'goto-previous-presentation)
-    (define-key map (kbd "q") 'disable-pbui-modal-mode)
     (define-key map (kbd "<escape>") 'disable-pbui-modal-mode)
     (define-key map (kbd "<mouse-2>") 'toggle-presentation-selected-at-point-handler)
     (define-key map (kbd "v") 'visualize-selected-presentations)
