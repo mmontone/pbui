@@ -453,6 +453,9 @@ VALUE is is the object being presented."
        (prop-match-end prop)
        'font-lock-face 'presentation))))
 
+(defvar pbui::presentations-overlays nil
+  "Internal PBUI variable to manage the collection of overlays used for presentations.")
+
 (defun propertize-presentations-in-buffer ()
   "Set text properties for presentations in current buffer."
   (interactive)
@@ -462,33 +465,29 @@ VALUE is is the object being presented."
     (save-excursion
       (goto-char 0)
       (while (setq prop (text-property-search-forward 'presentation))
-        (put-text-property
-         (prop-match-beginning prop)
-         (prop-match-end prop)
-         'mouse-face 'highlight)
-        (put-text-property
-         (prop-match-beginning prop)
-         (prop-match-end prop)
-         'help-echo (format "%s.
+        (let ((ps-overlay (make-overlay (prop-match-beginning prop)
+                                        (prop-match-end prop))))
+	  (push ps-overlay pbui::presentations-overlays)
+          (overlay-put ps-overlay 'mouse-face 'highlight)
+          (overlay-put ps-overlay 'help-echo
+                       (format "%s.
 
 mouse-2: toggle selection of this presentation"
-                            (pbui:print-presentation (prop-match-value prop))))
-        (put-text-property
-         (prop-match-beginning prop)
-         (prop-match-end prop)
-         'cursor-sensor-functions
-         (list
-          (lambda (window pos action)
-            (save-excursion
-              (if (eql action 'entered)
-                  (progn
-                    (highlight-presentation-at-point)
-                    (message
-                     (pbui:print-presentation (presentation-at-point))))
-                (progn
-                  (goto-char pos)
-                  (unhighlight-presentation-at-point))))
-            )))))
+                               (pbui:print-presentation (prop-match-value prop))))
+          (overlay-put ps-overlay
+                       'cursor-sensor-functions
+                       (list
+                        (lambda (window pos action)
+                          (save-excursion
+                            (if (eql action 'entered)
+                                (progn
+                                  (highlight-presentation-at-point)
+                                  (message
+                                   (pbui:print-presentation (presentation-at-point))))
+                              (progn
+                                (goto-char pos)
+                                (unhighlight-presentation-at-point))))
+                          ))))))
     (setq buffer-read-only read-only-p)))
 
 (defun pbui:highlight-all-buffers ()
@@ -701,7 +700,9 @@ mouse-2: toggle selection of this presentation"
   (cursor-sensor-mode))
 
 (defun pbui:release-pbui-interactive-mode ()
-  (cursor-sensor-mode -1))
+  (cursor-sensor-mode -1)
+  (dolist (ps-overlay pbui::presentations-overlays)
+    (delete-overlay ps-overlay)))
 
 ;; The modal PBUI mode
 
@@ -765,11 +766,11 @@ mouse-2: toggle selection of this presentation"
   (pbui:release-pbui-interactive-mode))
 
 (add-hook 'buffer-list-update-hook
-	  (lambda ()
-	    (when (not (active-minibuffer-window))
-	      (if pbui-modal-mode
-		  (pbui:initialize-pbui-interactive-mode)
-		(pbui:release-pbui-interactive-mode)))))
+          (lambda ()
+            (when (not (active-minibuffer-window))
+              (if pbui-modal-mode
+                  (pbui:initialize-pbui-interactive-mode)
+                (pbui:release-pbui-interactive-mode)))))
 
 ;; Disable PBUI minor mode for the minibuffer
 
