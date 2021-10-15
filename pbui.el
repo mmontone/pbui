@@ -92,11 +92,16 @@
                 :type string
                 :accessor pbui:command-description
                 :documentation "Description of the command.")
+   (condition :initarg :condition
+	      :accessor pbui:command-condition
+	      :initform nil
+	      :type (or null function symbol)
+	      :documentation "Predicate function that returns T when command can be applied.")
    (matching-predicate :initarg :applyable-when
                        :accessor matching-predicate
                        :initform nil
                        :type (or null function symbol)
-                       :documentation "When present, this function is used for matching the set of selected presentations.")
+                       :documentation "When present, this function is used for matching the set of selected presentations. Takes the list of selected presentations as parameter.")
    (argument-types :initarg :argument-types
                    :accessor pbui:command-argument-types
                    :initform nil
@@ -271,12 +276,13 @@
 
 (defun pbui:matching-presentations-commands ()
   "Return a list of the matching commands for added presentation arguments."
-  (cl-loop for command in (hash-table-values pbui:commands)
-           when (pbui:command-matches
-                 command
-                 (mapcar (lambda (sel) (cl-getf sel 'presentation))
-                         pbui:selected-presentations))
-           collect command))
+  (let ((ps (mapcar (lambda (sel) (cl-getf sel 'presentation))
+                    pbui:selected-presentations)))
+    (cl-loop for command in (hash-table-values pbui:commands)
+             when (and (or (not (pbui:command-condition command))
+			   (funcall (pbui:command-condition command) ps))
+		       (pbui:command-matches command ps))
+             collect command)))
 
 (defun pbui:run-command (command)
   "Run COMMAND.

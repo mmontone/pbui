@@ -3,11 +3,7 @@
 (def-presentation-command (email-commands:attach-files
 			   :title "Attach file(s) to email"
 			   :description "Attach files to email composition"
-			   :applyable-when (lambda (ps)
-					     (and mml-mode
-						  (cl-some (lambda (p)
-							     (eql (presentation-type p) 'file))
-							   ps))))
+			   :condition (lambda (ps) mml-mode))
   ((files file))
   (dolist (file files)
     (mml-attach-file file)))
@@ -15,11 +11,7 @@
 (def-presentation-command (email-commands:set-email-to-field
 			   :title "Set email message 'to' field"
 			   :description "Set email message 'to' field"
-			   :applyable-when (lambda (ps)
-					     (and mml-mode
-						  (cl-some (lambda (p)
-							     (eql (presentation-type p) 'email))
-							   ps))))
+			   :condition (lambda (ps) mml-mode))
   ((emails email))
   (message-goto-to)
   (dolist (email emails)
