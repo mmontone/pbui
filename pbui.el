@@ -780,17 +780,21 @@ mouse-2: toggle selection of this presentation"
 
 ;; Disable PBUI minor mode for the minibuffer
 
-(add-hook 'minibuffer-setup-hook
-          (lambda ()
-            (make-local-variable 'pbui-modal-was-enabled)
-            (setq pbui-modal-was-enabled pbui-modal-mode)
-            (when pbui-modal-mode
-              (pbui-modal-mode -1))))
+(defvar pbui::modal-mode-was-enabled-p nil
+  "Internal. Used by PBUI minibuffer enter/leave to know if modal mode should be reestablished or not.")
 
-(add-hook 'minibuffer-exit-hook
-          (lambda ()
-            (when pbui-modal-was-enabled
-              (pbui-modal-mode))))
+(defun pbui::enter-minibuffer ()
+  (setq pbui::modal-mode-was-enabled-p pbui-modal-mode)
+  (when pbui-modal-mode
+    (pbui-modal-mode -1)))
+
+(defun pbui::leave-minibuffer ()
+  (when pbui::modal-mode-was-enabled-p
+    (pbui-modal-mode)))
+
+(add-hook 'minibuffer-setup-hook 'pbui::enter-minibuffer)
+
+(add-hook 'minibuffer-exit-hook 'pbui::leave-minibuffer)
 
 (provide 'pbui)
 

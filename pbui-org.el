@@ -1,4 +1,5 @@
 (require 'pbui)
+(require 'org)
 
 (def-presentation-command (org-commands:link-files
 			   :title "Org: Link file(s)"

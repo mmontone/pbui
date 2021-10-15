@@ -1,4 +1,5 @@
 (require 'pbui)
+(require 'mml)
 
 (def-presentation-command (email-commands:attach-files
 			   :title "Attach file(s) to email"
