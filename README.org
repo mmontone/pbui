@@ -12,17 +12,16 @@
 
    #+BEGIN_SRC emacs-lisp
 
-   (push "/home/marian/src/pbui/" load-path)
+     (push "/home/marian/src/pbui/" load-path)
 
-   (use-package pbui
-     :bind
-     ;; Key binding to start PBUI modal mode
-     (("C-<return>" . pbui-modal-mode))
-     :config (progn
-	       ;; Enable PBUI mode globally
-	       (pbui-mode +1)
-	       ;; PBUI commands prefix
-	       (define-key pbui-mode-map (kbd "C-c x") 'pbui-command-map)))   
+     (use-package pbui
+       :bind
+       (("C-<return> <return>" . pbui-modal-mode))
+       :config (progn
+		 (pbui-mode +1)
+		 ;; PBUI commands prefix
+		 (define-key pbui-mode-map (kbd "C-<return>") 'pbui-command-map)))
+      
    #+END_SRC
 
 ** Presentation Based User Interfaces
