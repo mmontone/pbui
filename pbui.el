@@ -53,7 +53,8 @@
 
 (defcustom pbui:exit-PBUI-modal-mode-after-running-command t
   "Wether to exit PBUI modal mode after running a command or not."
-  :type 'boolean)
+  :type 'boolean
+  :group 'pbui)
 
 ;;------ Faces -----------------------------------------------------------
 
