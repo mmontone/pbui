@@ -756,14 +756,20 @@ mouse-2: toggle selection of this presentation"
 
 (defun disable-pbui-modal-mode ()
   (interactive)
-  (pbui-modal-mode -1)
-  (pbui-interactive-mode -1))
+  (pbui-modal-mode -1))
 
 (defun pbui:initialize-pbui-modal-mode ()
   (pbui:initialize-pbui-interactive-mode))
 
 (defun pbui:release-pbui-modal-mode ()
   (pbui:release-pbui-interactive-mode))
+
+(add-hook 'buffer-list-update-hook
+	  (lambda ()
+	    (when (not (active-minibuffer-window))
+	      (if pbui-modal-mode
+		  (pbui:initialize-pbui-interactive-mode)
+		(pbui:release-pbui-interactive-mode)))))
 
 ;; Disable PBUI minor mode for the minibuffer
 
