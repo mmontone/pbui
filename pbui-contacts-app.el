@@ -60,6 +60,7 @@
         'date (let ((date (parse-time-string (alist-get 'date (alist-get 'dob user)))))
                 (setf (nth 5 date) (nth 2 (calendar-current-date)))
                 date)
+	'date-string (alist-get 'date (alist-get 'dob user))
         'description (format "It is %s birthday." (contacts-app:user-fullname user))))
 
 (defun contacts-app ()
@@ -194,6 +195,28 @@
                   (format "to='%s',attachment='%s'"
                           (s-join "," (mapcar 'contacts-app:user-email users))
                           (s-join "," files)))))
+
+(def-presentation-command (contacts-app:insert-birthday-in-org
+			   :title "Insert birthday in org file"
+			   :description "Insert birthday in org file"
+			   :condition (lambda (ps) (and (featurep 'org) (eql major-mode 'org-mode))))
+  ((user contacts-app:user))
+  (insert
+   (format-time-string
+    (org-time-stamp-format)
+    (parse-time-string
+     (alist-get 'date (alist-get 'dob user))))))
+
+(def-presentation-command (contacts-app:insert-calendar-event-in-org
+			   :title "Insert calendar event in org file"
+			   :description "Insert calendar event in org file"
+			   :condition (lambda (ps) (and (featurep 'org) (eql major-mode 'org-mode))))
+  ((event calendar-event))
+  (insert
+   (format-time-string
+    (org-time-stamp-format)
+    (parse-time-string
+     (cl-getf event 'date-string)))))
 
 (provide 'pbui-contacts-app)
 
