@@ -221,18 +221,18 @@
 
 (defmacro def-presentation-command (name-and-options args &rest body)
   (let ((command-name (if (listp name-and-options)
-                          (first name-and-options)
+                          (cl-first name-and-options)
                         name-and-options))
         (options (when (listp name-and-options)
-                   (rest name-and-options))))
+                   (cl-rest name-and-options))))
     `(setf (gethash ',command-name pbui:commands)
            (make-instance 'pbui:command
                           :name ',command-name
                           :argument-types ',(and (not (cl-getf options :applyable-when))
-                                                 (mapcar 'second args))
-                          :handler (lambda ,(if (eql (first args) '&rest)
+                                                 (mapcar 'cl-second args))
+                          :handler (lambda ,(if (eql (cl-first args) '&rest)
                                                 args
-                                              (mapcar 'first args))
+                                              (mapcar 'cl-first args))
                                      ,@body)
                           :command-arglist ',args
                           ,@options))))
@@ -258,7 +258,7 @@
     (cl-loop for argspec in (pbui:command-arglist command)
              for matching-ps = (pbui:find-presentations-matching-argument argspec ps)
              do (setq ps (cl-set-difference ps matching-ps))
-             collect (cons (first argspec) matching-ps))))
+             collect (cons (cl-first argspec) matching-ps))))
 
 (defun pbui:command-matches (command presentations)
   "Return a list of (argument . presentation) when PRESENTATIONS match COMMAND, and NIL otherwise."
@@ -291,7 +291,7 @@ See: `pbui:command-matches'"
   (let ((ps (mapcar (lambda (sel)
                       (cl-getf sel 'presentation))
                     pbui:selected-presentations)))
-    (if (eql (first (pbui:command-arglist command))
+    (if (eql (cl-first (pbui:command-arglist command))
              '&rest)
         (apply (pbui:command-handler command)
                (mapcar 'presentation-value
@@ -337,7 +337,7 @@ We can use this function to `interactive' without needing to call
                      ((hash-table-p collection) (gethash choice collection))
                      ((assoc-list-p collection) (alist-get choice collection def nil 'equal))
                      (t                         choice))))
-      (if (listp results) (first results) results))))
+      (if (listp results) (cl-first results) results))))
 
 (defun pbui:read-command-name ()
   (alt-completing-read "Command: "
