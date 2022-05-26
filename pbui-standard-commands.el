@@ -71,6 +71,15 @@
     (move-file-to-trash file))
   (message (format "%d files moved to trash" (length files))))
 
+(def-presentation-command (standard-commands:rename-files
+                           :title "Rename file(s)"
+                           :description "Rename files(s)")
+  ((files file))
+  (dolist (file files)
+    (let ((newname (read-from-minibuffer "New file name: ")))
+      (rename-file file newname)
+      (message "File renamed"))))
+
 (def-presentation-command (send-email
                            :title "Send email"
                            :description "Send email")
