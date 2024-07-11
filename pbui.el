@@ -59,12 +59,12 @@
 ;;------ Faces -----------------------------------------------------------
 
 (defface presentation
-  '((t :box '(:line-width 1 :color "gray" :style nil)))
+  '((t :box (:line-width 1 :color "gray" :style nil)))
   "Face for presentations in PBUI"
   :group 'pbui)
 
 (defface selected-presentation
-  '((t :box '(:line-width 1 :color "gray" :style nil)
+  '((t :box (:line-width 1 :color "gray" :style nil)
        :background "lightyellow"))
   "Face for presentations"
   :group 'pbui)
