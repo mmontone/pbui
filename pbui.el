@@ -93,10 +93,10 @@
                 :accessor pbui:command-description
                 :documentation "Description of the command.")
    (condition :initarg :condition
-	      :accessor pbui:command-condition
-	      :initform nil
-	      :type (or null function symbol)
-	      :documentation "Predicate function that returns T when command can be applied.")
+              :accessor pbui:command-condition
+              :initform nil
+              :type (or null function symbol)
+              :documentation "Predicate function that returns T when command can be applied.")
    (matching-predicate :initarg :applyable-when
                        :accessor matching-predicate
                        :initform nil
@@ -231,8 +231,8 @@
                           :argument-types ',(and (not (cl-getf options :applyable-when))
                                                  (mapcar 'cl-second args))
                           :handler (lambda ,(if (eql (cl-first args) '&rest)
-                                                args
-                                              (mapcar 'cl-first args))
+                                           args
+                                         (mapcar 'cl-first args))
                                      ,@body)
                           :command-arglist ',args
                           ,@options))))
@@ -245,7 +245,7 @@
   "Find presentations in PRESENTATIONS that match ARGSPEC."
   (cl-destructuring-bind (argname argtype) argspec
     (cl-flet ((matches-p (p)
-                         (eql (presentation-type p) argtype)))
+                (eql (presentation-type p) argtype)))
       (if (pbui:arg-multiple-p argname)
           ;; a multi-valued argument
           (cl-remove-if-not #'matches-p presentations)
@@ -280,8 +280,8 @@
                     pbui:selected-presentations)))
     (cl-loop for command in (hash-table-values pbui:commands)
              when (and (or (not (pbui:command-condition command))
-			   (funcall (pbui:command-condition command) ps))
-		       (pbui:command-matches command ps))
+                           (funcall (pbui:command-condition command) ps))
+                       (pbui:command-matches command ps))
              collect command)))
 
 (defun pbui:run-command (command)
@@ -459,6 +459,17 @@ VALUE is is the object being presented."
        (prop-match-end prop)
        'font-lock-face 'presentation))))
 
+(defun pbui::map-presentations-in-buffer (func &optional buffer)
+  "Map FUNC over all presentations in BUFFER.
+
+If BUFFER is not specified, current buffer is used.
+FUNC is passed the presentation object."
+  (let ((buf (or buffer (current-buffer))))
+    (save-excursion
+      (goto-char 0)
+      (while (setq prop (text-property-search-forward 'presentation))
+        (funcall func (prop-match-value prop))))))
+
 (defvar pbui::presentations-overlays nil
   "Internal PBUI variable to manage the collection of overlays used for presentations.")
 
@@ -473,7 +484,7 @@ VALUE is is the object being presented."
       (while (setq prop (text-property-search-forward 'presentation))
         (let ((ps-overlay (make-overlay (prop-match-beginning prop)
                                         (prop-match-end prop))))
-	  (push ps-overlay pbui::presentations-overlays)
+          (push ps-overlay pbui::presentations-overlays)
           (overlay-put ps-overlay 'mouse-face 'highlight)
           (overlay-put ps-overlay 'help-echo
                        (format "%s.
