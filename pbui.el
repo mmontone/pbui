@@ -482,8 +482,20 @@ FUNC is passed the presentation object and the text being displayed."
       (while (setf prop (goto-next-presentation))
         (when (looking-at pattern)
           (select-presentation-at-point)
-          (incf selected))))
+          (cl-incf selected))))
     (message "%d presentations selected matching: %s" selected pattern)))
+
+(defun pbui-unselect-presentations-in-buffer (pattern)
+  "Selects the presentations in BUFFER that match PATTERN."
+  (interactive "sSelect presentations matching: ")
+  (let (prop (selected 0))
+    (save-excursion
+      (goto-char (point-min))
+      (while (setf prop (goto-next-presentation))
+        (when (looking-at pattern)
+          (unselect-presentation-at-point)
+          (cl-incf selected))))
+    (message "%d presentations unselected matching: %s" selected pattern)))
 
 (defvar pbui::presentations-overlays nil
   "Internal PBUI variable to manage the collection of overlays used for presentations.")
