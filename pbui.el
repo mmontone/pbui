@@ -486,8 +486,8 @@ FUNC is passed the presentation object and the text being displayed."
     (message "%d presentations selected matching: %s" selected pattern)))
 
 (defun pbui-unselect-presentations-in-buffer (pattern)
-  "Selects the presentations in BUFFER that match PATTERN."
-  (interactive "sSelect presentations matching: ")
+  "Unselects the presentations in BUFFER that match PATTERN."
+  (interactive "sUnselect presentations matching: ")
   (let (prop (selected 0))
     (save-excursion
       (goto-char (point-min))
