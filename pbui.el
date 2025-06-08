@@ -463,12 +463,27 @@ VALUE is is the object being presented."
   "Map FUNC over all presentations in BUFFER.
 
 If BUFFER is not specified, current buffer is used.
-FUNC is passed the presentation object."
+FUNC is passed the presentation object and the text being displayed."
   (let ((buf (or buffer (current-buffer))))
     (save-excursion
       (goto-char 0)
       (while (setq prop (text-property-search-forward 'presentation))
-        (funcall func (prop-match-value prop))))))
+        (funcall func (prop-match-value prop)
+                 (buffer-substring-no-properties
+                  (prop-match-beginning prop)
+                  (prop-match-end prop)))))))
+
+(defun pbui-select-presentations-in-buffer (pattern)
+  "Selects the presentations in BUFFER that match PATTERN."
+  (interactive "sSelect presentations matching: ")
+  (let (prop (selected 0))
+    (save-excursion
+      (goto-char (point-min))
+      (while (setf prop (goto-next-presentation))
+        (when (looking-at pattern)
+          (select-presentation-at-point)
+          (incf selected))))
+    (message "%d presentations selected matching: %s" selected pattern)))
 
 (defvar pbui::presentations-overlays nil
   "Internal PBUI variable to manage the collection of overlays used for presentations.")
@@ -549,7 +564,8 @@ mouse-2: toggle selection of this presentation"
   (let ((prop
          (text-property-search-forward 'presentation)))
     (when prop
-      (goto-char (prop-match-beginning prop)))))
+      (goto-char (prop-match-beginning prop))
+      prop)))
 
 (defun goto-previous-presentation ()
   (interactive)
@@ -559,7 +575,8 @@ mouse-2: toggle selection of this presentation"
   (let ((prop
          (text-property-search-backward 'presentation)))
     (when prop
-      (goto-char (prop-match-beginning prop)))))
+      (goto-char (prop-match-beginning prop))
+      prop)))
 
 ;;--- PBUI mode ----------------------------------------------------------------
 
